@@ -39,7 +39,7 @@ class PlayingCard extends StatefulWidget {
   //Add accessor for isFaceUp
   bool get isFaceUp => _isFaceUp;
   set isFaceUp(bool value) {
-    print('Setting isFaceUp to $value for ${toStr()}');
+    // print('Setting isFaceUp to $value for ${toStr()}');
     _isFaceUp = value;
   }
   int currentPile = PlayingCard.DRAG_SOURCE_STOCK;
@@ -63,11 +63,11 @@ class _PlayingCardState extends State<PlayingCard> {
   @override
   Widget build(BuildContext context) {
 
-    print('Screen width ${MediaQuery.of(context).size.width}, height ${MediaQuery.of(context).size.height}');
+    // print('Screen width ${MediaQuery.of(context).size.width}, height ${MediaQuery.of(context).size.height}');
 
     //Set cardWidth to one tenth of the screen width from MediaQuery
     PlayingCard.cardWidth = MediaQuery.of(context).size.width / 10;
-    PlayingCard.cardHeight = MediaQuery.of(context).size.height / 10;
+    PlayingCard.cardHeight = MediaQuery.of(context).size.height / 5;
     PlayingCard.fontSize = MediaQuery.of(context).size.width < 600 ? 10 : 24;
     PlayingCard.topRightFontSize = MediaQuery.of(context).size.width < 600 ? 5 : 12;
 

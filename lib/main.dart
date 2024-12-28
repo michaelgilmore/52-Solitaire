@@ -13,7 +13,7 @@ class GSolitaireApp extends StatelessWidget {
     return MaterialApp(
       title: 'GSolitaire',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
         useMaterial3: true,
       ),
       home: const MainScreen(title: '52! Solitaire'), //8*10^67
@@ -79,238 +79,245 @@ class _MainScreenState extends State<MainScreen> {
       body:
         Padding(
           padding: EdgeInsets.all(surroundingPadding),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  //Stock
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if(stock.isNotEmpty) {
-                          stock[0].currentPile = PlayingCard.DRAG_SOURCE_WASTE;
-                          waste.add(stock[0]);
-                          stock.removeAt(0);
-                          waste.last.isFaceUp = true;
-                        }
-                        else {
-                          stock = waste.toList();
-                          for (var card in stock) {
-                            card.isFaceUp = false;
-                            card.currentPile = PlayingCard.DRAG_SOURCE_STOCK;
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                //Stock, Waste, Foundation
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    //Stock
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if(stock.isNotEmpty) {
+                            stock[0].currentPile = PlayingCard.DRAG_SOURCE_WASTE;
+                            waste.add(stock[0]);
+                            stock.removeAt(0);
+                            waste.last.isFaceUp = true;
                           }
-                          waste.clear();
-                        }
-                      });
-                    },
-                    child: Column(
-                      children: [
-                        stock.isNotEmpty ? stock[0] : PlayingCard.placeholder,
-                        Text(stock.length.toString()),
-                      ]
-                    )
-                  ),
-
-                  //Waste
-                  GestureDetector(
-                    onDoubleTap: () {
-                      setState(() {
-                        if(waste.isEmpty) {
-                          return;
-                        }
-
-                        PlayingCard topCard = waste.last;
-
-                        //Check each foundation pile to see if the top card can be moved there
-                        for(int i = 0; i < 4; i++) {
-                          if(isValidFoundationDrop(foundation[i].last, topCard)) {
-                            // print('Moving card to foundation');
-                            foundation[i].add(waste.removeLast());
-                            foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
-                            return;
+                          else {
+                            stock = waste.toList();
+                            for (var card in stock) {
+                              card.isFaceUp = false;
+                              card.currentPile = PlayingCard.DRAG_SOURCE_STOCK;
+                            }
+                            waste.clear();
                           }
-                        }
-
-                        //Check each tableau pile to see if the top card can be moved there
-                        for(int i = 0; i < 7; i++) {
-                          if(isValidTableauDrop(tableau[i].length > 0 ? tableau[i].last : null, topCard)) {
-                            // print('Moving card to tableau');
-                            tableau[i].add(waste.removeLast());
-                            tableau[i].last.currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[i];
-                            return;
-                          }
-                        }
-                      });
-                    },
-                    child: Column(
+                        });
+                      },
+                      child: Column(
                         children: [
-                          waste.isNotEmpty ? waste.last : PlayingCard('', '', true),
-                          Text(waste.length.toString()),
+                          stock.isNotEmpty ? stock[0] : PlayingCard.placeholder,
+                          Text(stock.length.toString()),
                         ]
-                    )
-                  ),
-
-                  SizedBox(width: spaceBetweenWasteAndFoundation),
-
-                  //Foundation
-                  for(int a = 0; a < 4; a++)
-                  DragTarget(
-                    onAcceptWithDetails: (DragTargetDetails data) {
-                      PlayingCard droppedCard = data.data;
-                      // print('onAcceptWithDetails ${droppedCard.toStr()}');
-
-                      if(isValidFoundationDrop(foundation[a].last, droppedCard)) {
-                        // print('Accepting foundation drop');
-                        foundation[a].add(droppedCard);
-                        removeCardFromDragSource(droppedCard);
-                        foundation[a].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[a];
-                      }
-                    },
-                    onWillAcceptWithDetails: (DragTargetDetails data) {
-                      PlayingCard droppedCard = data.data;
-                      // print('onWillAcceptWithDetails ${droppedCard.toStr()}');
-
-                      if(isValidFoundationDrop(foundation[a].last, droppedCard)) {
-                        // print('Will accept foundation drop');
-                        return true;
-                      }
-
-                      // print('Rejecting drop');
-                      return false;
-                    },
-                    builder: (context, candidateData, rejectedData) => Container(
-                      width: PlayingCard.cardWidth,
-                      height: PlayingCard.cardHeight,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: foundation[a].last
+                      )
                     ),
-                  ),
-                ],
-
-              ),
-
-              //Spacer
-              const Row(
-                children: [
-                  SizedBox(height: 50)
-                ],
-              ),
-
-              //Tableau
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  for(int i = 0; i < 7; i++)
+            
+                    //Waste
                     GestureDetector(
                       onDoubleTap: () {
                         setState(() {
-                          if(tableau[i].isEmpty) {
+                          if(waste.isEmpty) {
                             return;
                           }
-
-                          PlayingCard topCard = tableau[i].last;
-
+            
+                          PlayingCard topCard = waste.last;
+            
                           //Check each foundation pile to see if the top card can be moved there
-                          for(int j = 0; j < 4; j++) {
-                            if(isValidFoundationDrop(foundation[j].last, topCard)) {
+                          for(int i = 0; i < 4; i++) {
+                            if(isValidFoundationDrop(foundation[i].last, topCard)) {
                               // print('Moving card to foundation');
-                              foundation[j].add(tableau[i].removeLast());
-                              foundation[j].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[j];
+                              foundation[i].add(waste.removeLast());
+                              foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
                               return;
                             }
                           }
-
+            
                           //Check each tableau pile to see if the top card can be moved there
-                          // for(int j = 0; j < 7; j++) {
-                          //   if(isValidTableauDrop(tableau[j].last ?? null, topCard)) {
-                          //     print('Moving card to tableau');
-                          //     tableau[j].add(tableau[i].removeLast());
-                          //     tableau[j].last.currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[j];
-                          //     return;
-                          //   }
-                          // }
+                          for(int i = 0; i < 7; i++) {
+                            if(isValidTableauDrop(tableau[i].length > 0 ? tableau[i].last : null, topCard)) {
+                              // print('Moving card to tableau');
+                              tableau[i].add(waste.removeLast());
+                              tableau[i].last.currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[i];
+                              return;
+                            }
+                          }
                         });
                       },
-                      child: DragTarget(
-                        onAcceptWithDetails: (DragTargetDetails data) {
-                          PlayingCard droppedCard = data.data;
-                          // print('onAcceptWithDetails ${droppedCard.toStr()}');
-
-                          if(isValidTableauDrop(tableau[i].length > 0 ? tableau[i].last : null, droppedCard)) {
-                            // print('Accepting tableau drop');
-                            addCardFromDragSource(droppedCard, tableau[i], PlayingCard.DRAG_SOURCE_TABLEAUS[i]);
-                          }
+                      child: Column(
+                          children: [
+                            waste.isNotEmpty ? waste.last : PlayingCard('', '', true),
+                            Text(waste.length.toString()),
+                          ]
+                      )
+                    ),
+            
+                    SizedBox(width: spaceBetweenWasteAndFoundation),
+            
+                    //Foundation
+                    for(int a = 0; a < 4; a++)
+                    DragTarget(
+                      onAcceptWithDetails: (DragTargetDetails data) {
+                        PlayingCard droppedCard = data.data;
+                        // print('onAcceptWithDetails ${droppedCard.toStr()}');
+            
+                        if(isValidFoundationDrop(foundation[a].last, droppedCard)) {
+                          // print('Accepting foundation drop');
+                          foundation[a].add(droppedCard);
+                          removeCardFromDragSource(droppedCard);
+                          foundation[a].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[a];
+                        }
+                      },
+                      onWillAcceptWithDetails: (DragTargetDetails data) {
+                        PlayingCard droppedCard = data.data;
+                        // print('onWillAcceptWithDetails ${droppedCard.toStr()}');
+            
+                        if(isValidFoundationDrop(foundation[a].last, droppedCard)) {
+                          // print('Will accept foundation drop');
+                          return true;
+                        }
+            
+                        // print('Rejecting drop');
+                        return false;
+                      },
+                      builder: (context, candidateData, rejectedData) => Container(
+                        width: PlayingCard.cardWidth,
+                        height: PlayingCard.cardHeight,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: foundation[a].last
+                      ),
+                    ),
+                  ],
+            
+                ),
+            
+                //Spacer
+                const Row(
+                  children: [
+                    SizedBox(height: 50)
+                  ],
+                ),
+            
+                //Tableau
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // SizedBox(height: 2*PlayingCard.cardHeight, width: 1),
+                    for(int i = 0; i < 7; i++)
+                      GestureDetector(
+                        onDoubleTap: () {
+                          setState(() {
+                            if(tableau[i].isEmpty) {
+                              return;
+                            }
+            
+                            PlayingCard topCard = tableau[i].last;
+            
+                            //Check each foundation pile to see if the top card can be moved there
+                            for(int j = 0; j < 4; j++) {
+                              if(isValidFoundationDrop(foundation[j].last, topCard)) {
+                                // print('Moving card to foundation');
+                                foundation[j].add(tableau[i].removeLast());
+                                foundation[j].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[j];
+                                if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
+                                  tableau[i].last.isFaceUp = true;
+                                  tableau[i].last.value = tableau[i].last.value;
+                                  print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
+                                }
+                                return;
+                              }
+                            }
+            
+                            //Check each tableau pile to see if the top card can be moved there
+                            // for(int j = 0; j < 7; j++) {
+                            //   if(isValidTableauDrop(tableau[j].last ?? null, topCard)) {
+                            //     print('Moving card to tableau');
+                            //     tableau[j].add(tableau[i].removeLast());
+                            //     tableau[j].last.currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[j];
+                            //     return;
+                            //   }
+                            // }
+                          });
                         },
-                        onWillAcceptWithDetails: (DragTargetDetails data) {
-                          PlayingCard droppedCard = data.data;
-                          // print('onWillAcceptWithDetails ${droppedCard.toString()}');
+                        child: DragTarget(
+                          onAcceptWithDetails: (DragTargetDetails data) {
+                            PlayingCard droppedCard = data.data;
+                            // print('onAcceptWithDetails ${droppedCard.toStr()}');
+            
+                            if(isValidTableauDrop(tableau[i].length > 0 ? tableau[i].last : null, droppedCard)) {
+                              // print('Accepting tableau drop');
+                              addCardFromDragSource(droppedCard, tableau[i], PlayingCard.DRAG_SOURCE_TABLEAUS[i]);
+                            }
+                          },
+                          onWillAcceptWithDetails: (DragTargetDetails data) {
+                            PlayingCard droppedCard = data.data;
+                            // print('onWillAcceptWithDetails ${droppedCard.toString()}');
+            
+                            if(isValidTableauDrop(tableau[i].length > 0 ? tableau[i].last : null, droppedCard)) {
+                              // print('Will accept tableau drop');
+                              return true;
+                            }
+            
+                            // print('Will not accept tableau drop');
+                            return false;
+                          },
+                          builder: (context, candidateData, rejectedData) => Container(
+                            width: PlayingCard.cardWidth,
+                            height: PlayingCard.cardHeight * 2,
 
-                          if(isValidTableauDrop(tableau[i].length > 0 ? tableau[i].last : null, droppedCard)) {
-                            // print('Will accept tableau drop');
-                            return true;
-                          }
-
-                          // print('Will not accept tableau drop');
-                          return false;
-                        },
-                        builder: (context, candidateData, rejectedData) => Container(
-                          width: PlayingCard.cardWidth,
-                          height: PlayingCard.cardHeight,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.black),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-
-                          child: //tableau[i].isNotEmpty ? tableau[i].last : PlayingCard('', '', true),
-                          //Draw tableau cards overlapping each other
-                          Stack(
-                            children: [
-                              for(int j = 0; j < tableau[i].length; j++)
-                                Positioned(
-                                  left: 0,
-                                  top: j * 20.0,
-                                  child: tableau[i][j],
-                                )
-                            ],
+                            child: //tableau[i].isNotEmpty ? tableau[i].last : PlayingCard('', '', true),
+                            //Draw tableau cards overlapping each other
+                            Stack(
+                              children: [
+                                for(int j = 0; j < tableau[i].length; j++)
+                                  Positioned(
+                                    left: 0,
+                                    top: j * 20.0,
+                                    child: tableau[i][j],
+                                  )
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                ),
+            
+                //Spacer
+                const Row(
+                  children: [
+                    SizedBox(height: 50)
+                  ],
+                ),
 
-              //Spacer
-              const Row(
-                children: [
-                  SizedBox(height: 50)
-                ],
-              ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(onPressed: () {
-                    setState(() {
-                      for(int i = 0; i < 7; i++) {
-                        if(tableau[i].isNotEmpty) {
-                          tableau[i].last.isFaceUp = true;
-                          print('Tableau $i top card(${tableau[i].last.toStr()}) ${tableau[i].last.isFaceUp}');
+                //Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(onPressed: () {
+                      setState(() {
+                        for(int i = 0; i < 7; i++) {
+                          if(tableau[i].isNotEmpty) {
+                            tableau[i].last.isFaceUp = true;
+                            print('Tableau $i top card(${tableau[i].last.toStr()}) ${tableau[i].last.isFaceUp}');
+                          }
                         }
-                      }
-                    });
-                  }, child: const Text('Show Face Up')),
-                  ElevatedButton(onPressed: () {
-                    checkTopCardIsFaceUp();
-                  }, child: const Text('Refresh'))
-                ]
-              ),
-            ],
+                      });
+                    }, child: const Text('Show Face Up')),
+                    ElevatedButton(onPressed: () {
+                      checkTopCardIsFaceUp();
+                    }, child: const Text('Refresh'))
+                  ]
+                ),
+            
+                Text('${MediaQuery.of(context).size.width} x ${MediaQuery.of(context).size.height}'),
+              ],
+            ),
           ),
         ),
 
@@ -396,9 +403,12 @@ class _MainScreenState extends State<MainScreen> {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
           // print('Removing ${tableau[i].last.toStr()} from tableau $i');
           tableau[i].removeLast();
-          tableau[i].last.isFaceUp = true;
-          tableau[i].last.value = tableau[i].last.value;
-          print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
+          if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
+            tableau[i].last.isFaceUp = true;
+            tableau[i].last.value = tableau[i].last.value;
+            print('Set tableau $i last card(${tableau[i].last
+                .toStr()}) to face up');
+          }
         }
       }
     });
@@ -416,9 +426,11 @@ class _MainScreenState extends State<MainScreen> {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
           // print('Transferring card from tableau $i');
           target.add(tableau[i].removeLast());
-          tableau[i].last.isFaceUp = true;
-          tableau[i].last.value = tableau[i].last.value;
-          print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
+          if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
+            tableau[i].last.isFaceUp = true;
+            tableau[i].last.value = tableau[i].last.value;
+            print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
+          }
         }
       }
       for(int i = 0; i < 4; i++) {
