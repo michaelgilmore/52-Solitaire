@@ -28,7 +28,7 @@ class PlayingCard extends StatefulWidget {
   static PlayingCard placeholder = PlayingCard('', '', false);
 
   static double cardWidth = 100.0;
-  static double cardHeight = 150.0;
+  static double cardHeight = 160.0;
   static double fontSize = 24;
   static double topRightFontSize = 12;
 
@@ -44,9 +44,10 @@ class PlayingCard extends StatefulWidget {
   }
   int currentPile = PlayingCard.DRAG_SOURCE_STOCK;
 
+  PlayingCard? cardOnTopOfThisOne;
+
   PlayingCard(this.value, this.suit, this._isFaceUp, {super.key}) :
-    suitColor = suit == hearts || suit == diamonds ? Colors.red : Colors.black {
-  }
+    suitColor = suit == hearts || suit == diamonds ? Colors.red : Colors.black;
 
   @override
   State<PlayingCard> createState() => _PlayingCardState();
@@ -62,14 +63,6 @@ class _PlayingCardState extends State<PlayingCard> {
 
   @override
   Widget build(BuildContext context) {
-
-    // print('Screen width ${MediaQuery.of(context).size.width}, height ${MediaQuery.of(context).size.height}');
-
-    //Set cardWidth to one tenth of the screen width from MediaQuery
-    PlayingCard.cardWidth = MediaQuery.of(context).size.width / 10;
-    PlayingCard.cardHeight = MediaQuery.of(context).size.height / 5;
-    PlayingCard.fontSize = MediaQuery.of(context).size.width < 600 ? 10 : 24;
-    PlayingCard.topRightFontSize = MediaQuery.of(context).size.width < 600 ? 5 : 12;
 
     cardColor = widget.isFaceUp ? Colors.white : Colors.blue;
 
