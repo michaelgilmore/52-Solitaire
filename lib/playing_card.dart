@@ -65,7 +65,6 @@ class _PlayingCardState extends State<PlayingCard> {
   @override
   Widget build(BuildContext context) {
     print('PlayingCard build(${widget.toStr()}) - currentPile: ${widget.currentPile}, isFaceUp: ${widget.isFaceUp}');
-    print('widget.isFaceUp: ${widget.isFaceUp}');
     cardColor = widget.isFaceUp ? Colors.white : Colors.blue;
 
     return Draggable(
