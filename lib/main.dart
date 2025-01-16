@@ -50,17 +50,31 @@ class _MainScreenState extends State<MainScreen> {
     //Deal cards to tableau
     for(int i = 0; i <= 6; i++) {
       for (int j = i; j < 7; j++) {
+        stock[0].currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[j];
+        stock[0].isFaceUp = j == i;
         tableau[j].add(stock[0]);
-        tableau[j].last.currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[j];
-        tableau[j].last.isFaceUp = j == i;
         stock.removeAt(0);
+      }
+    }
+
+    // waste.last.currentPile = PlayingCard.DRAG_SOURCE_WASTE;
+
+    //Debugging: loop through each card in each tableau and print currentPile
+    for(int i = 0; i < 7; i++) {
+      for(int j = 0; j < tableau[i].length; j++) {
+        print('Tableau $i card $j (${tableau[i][j].toStr()}) currentPile: ${tableau[i][j].currentPile}');
       }
     }
 
     for(int i = 0; i < 4; i++) {
       foundation.add([]);
-      foundation[i].add(PlayingCard('', PlayingCard.suits[i], true));
+      foundation[i].add(PlayingCard('', PlayingCard.suits[i], true, key: Key(PlayingCard.suits[i])));
     }
+
+    foundation[0].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATION_HEARTS;
+    foundation[1].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATION_DIAMONDS;
+    foundation[2].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATION_CLUBS;
+    foundation[3].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATION_SPADES;
   }
 
   @override
@@ -148,7 +162,7 @@ class _MainScreenState extends State<MainScreen> {
                       },
                       child: Column(
                           children: [
-                            waste.isNotEmpty ? waste.last : PlayingCard('', '', true),
+                            waste.isNotEmpty ? waste.last : SizedBox(height: PlayingCard.cardHeight, width: PlayingCard.cardWidth),
                             Text(waste.length.toString()),
                           ]
                       )
@@ -236,7 +250,9 @@ class _MainScreenState extends State<MainScreen> {
 
                             if(isValidTableauDrop(tableau[i].isNotEmpty ? tableau[i].last : null, droppedCard)) {
                               // print('Accepting tableau drop');
-                              tableau[i].last.cardOnTopOfThisOne = droppedCard;
+                              if(tableau[i].isNotEmpty) {
+                                tableau[i].last.cardOnTopOfThisOne = droppedCard;
+                              }
                               addCardFromDragSource(droppedCard, tableau[i], PlayingCard.DRAG_SOURCE_TABLEAUS[i]);
                             }
                           },
@@ -312,7 +328,7 @@ class _MainScreenState extends State<MainScreen> {
     List<PlayingCard> deck = [];
     for (var suit in PlayingCard.suits) {
       for (var value in PlayingCard.values) {
-        deck.add(PlayingCard(value, suit, false));
+        deck.add(PlayingCard(value, suit, false, key: Key('$value$suit')));
       }
     }
     deck.shuffle();
@@ -408,16 +424,18 @@ class _MainScreenState extends State<MainScreen> {
       }
       for(int i = 0; i < 7; i++) {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
-          // print('Transferring card from tableau $i');
+          print('Transferring card from tableau $i');
           tableau[i].remove(card);
           target.add(card);
-          if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
-            tableau[i].last.isFaceUp = true;
-            tableau[i].last.value = tableau[i].last.value;
-            //print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
-          }
+
           if(card.cardOnTopOfThisOne != null) {
             addCardFromDragSource(card.cardOnTopOfThisOne!, target, newPile);
+          }
+
+          if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
+            PlayingCard newTopCard = tableau[i].last;
+            newTopCard.isFaceUp = true;
+            print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
           }
         }
       }
@@ -432,15 +450,17 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void checkTopCardIsFaceUp() {
+    print('checkTopCardIsFaceUp()');
     setState(() {
       for(int i = 0; i < 7; i++) {
         if(tableau[i].isNotEmpty) {
           if(!tableau[i].last.isFaceUp) {
             tableau[i].last.isFaceUp = true;
-            //print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
+            print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
           }
         }
       }
     });
+    print('checkTopCardIsFaceUp() done');
   }
 }

@@ -25,7 +25,7 @@ class PlayingCard extends StatefulWidget {
   static const List<int> DRAG_SOURCE_FOUNDATIONS = [DRAG_SOURCE_FOUNDATION_HEARTS, DRAG_SOURCE_FOUNDATION_DIAMONDS, DRAG_SOURCE_FOUNDATION_CLUBS, DRAG_SOURCE_FOUNDATION_SPADES];
   static const DRAG_SOURCE_STOCK = 12;
 
-  static PlayingCard placeholder = PlayingCard('', '', false);
+  static PlayingCard placeholder = PlayingCard('', '', false, key: const Key('ph'));
 
   static double cardWidth = 100.0;
   static double cardHeight = 160.0;
@@ -35,18 +35,12 @@ class PlayingCard extends StatefulWidget {
   String value;
   final String suit;
   final Color suitColor;
-  bool _isFaceUp = false;
-  //Add accessor for isFaceUp
-  bool get isFaceUp => _isFaceUp;
-  set isFaceUp(bool value) {
-    // print('Setting isFaceUp to $value for ${toStr()}');
-    _isFaceUp = value;
-  }
+  bool isFaceUp = false;
   int currentPile = PlayingCard.DRAG_SOURCE_STOCK;
 
   PlayingCard? cardOnTopOfThisOne;
 
-  PlayingCard(this.value, this.suit, this._isFaceUp, {super.key}) :
+  PlayingCard(this.value, this.suit, this.isFaceUp, {super.key}) :
     suitColor = suit == hearts || suit == diamonds ? Colors.red : Colors.black;
 
   @override
@@ -62,8 +56,16 @@ class _PlayingCardState extends State<PlayingCard> {
   Color cardColor = Colors.white;
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    print('PlayingCard initState(${widget.toStr()})');
+    super.initState();
+    print('widget.isFaceUp: ${widget.isFaceUp}');
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    print('PlayingCard build(${widget.toStr()}) - currentPile: ${widget.currentPile}, isFaceUp: ${widget.isFaceUp}');
+    print('widget.isFaceUp: ${widget.isFaceUp}');
     cardColor = widget.isFaceUp ? Colors.white : Colors.blue;
 
     return Draggable(
@@ -127,7 +129,6 @@ class _PlayingCardState extends State<PlayingCard> {
     );
   }
 
-  //Override equality operator
   @override
   bool operator ==(Object other) {
     if (other is PlayingCard) {
@@ -135,4 +136,7 @@ class _PlayingCardState extends State<PlayingCard> {
     }
     return false;
   }
+
+  @override
+  int get hashCode => widget.value.hashCode ^ widget.suit.hashCode;
 }
