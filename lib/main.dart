@@ -57,24 +57,11 @@ class _MainScreenState extends State<MainScreen> {
       }
     }
 
-    // waste.last.currentPile = PlayingCard.DRAG_SOURCE_WASTE;
-
-    //Debugging: loop through each card in each tableau and print currentPile
-    for(int i = 0; i < 7; i++) {
-      for(int j = 0; j < tableau[i].length; j++) {
-        print('Tableau $i card $j (${tableau[i][j].toStr()}) currentPile: ${tableau[i][j].currentPile}');
-      }
-    }
-
     for(int i = 0; i < 4; i++) {
       foundation.add([]);
       foundation[i].add(PlayingCard('', PlayingCard.suits[i], true, key: Key(PlayingCard.suits[i])));
+      foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
     }
-
-    foundation[0].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATION_HEARTS;
-    foundation[1].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATION_DIAMONDS;
-    foundation[2].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATION_CLUBS;
-    foundation[3].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATION_SPADES;
   }
 
   @override
@@ -449,6 +436,7 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  //Used for debugging. Can be removed when issue is resolved.
   void checkTopCardIsFaceUp() {
     print('checkTopCardIsFaceUp()');
     setState(() {
