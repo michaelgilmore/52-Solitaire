@@ -39,14 +39,14 @@ class _GameScreenState extends State<GameScreen> {
 
     for(int i = 0; i < 4; i++) {
       foundation.add([]);
-      foundation[i].add(PlayingCard('', PlayingCard.suits[i], true, key: Key(PlayingCard.suits[i])));
+      foundation[i].add(PlayingCard('', PlayingCard.suits[i], true, key: UniqueKey()/*Key(PlayingCard.suits[i])*/));
       foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    print('MainScreen build()');
+    // print('GameScreen build()');
 
     // checkTopCardIsFaceUp();
 
@@ -167,7 +167,7 @@ class _GameScreenState extends State<GameScreen> {
                       builder: (context, candidateData, rejectedData) => Column(
                         children: [
                           foundation[a].last,
-                          Text((foundation[a].length - 1).toString()),//TODO: Don't have empty be a card.
+                          Text((foundation[a].length - 1).toString()),//TODO: Don't have empty be a card. Then we won't need to subtract 1 here.
                         ],
                       ),
                     ),
@@ -188,6 +188,7 @@ class _GameScreenState extends State<GameScreen> {
                   for(int i = 0; i < 7; i++)
                     GestureDetector(
                       onDoubleTap: () {
+                        // print('Double tap on tableau $i card ${tableau[i].last.toStr()}');
                         setState(() {
                           if(tableau[i].isEmpty) {
                             return;
@@ -201,9 +202,14 @@ class _GameScreenState extends State<GameScreen> {
                               // print('Moving card to foundation');
                               foundation[j].add(tableau[i].removeLast());
                               foundation[j].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[j];
+
                               if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
                                 tableau[i].last.isFaceUp = true;
-                                print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
+                                //HACK Remove last card and recreate it with isFaceUp set to true. Seems like not managing state properly.
+                                PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
+                                newLast.currentPile = tableau[i].last.currentPile;
+                                tableau[i].removeLast();
+                                tableau[i].add(newLast);
                               }
                               return;
                             }
@@ -261,26 +267,6 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
 
-              //Buttons
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              //   children: [
-              //     ElevatedButton(onPressed: () {
-              //       setState(() {
-              //         for(int i = 0; i < 7; i++) {
-              //           if(tableau[i].isNotEmpty) {
-              //             tableau[i].last.isFaceUp = true;
-              //             //print('Tableau $i top card(${tableau[i].last.toStr()}) ${tableau[i].last.isFaceUp}');
-              //           }
-              //         }
-              //       });
-              //     }, child: const Text('Show Face Up')),
-              //     ElevatedButton(onPressed: () {
-              //       checkTopCardIsFaceUp();
-              //     }, child: const Text('Refresh'))
-              //   ]
-              // ),
-
               // Text('${MediaQuery.of(context).size.width.toStringAsFixed(0)} x ${MediaQuery.of(context).size.height.toStringAsFixed(0)}'),
             ],
           ),
@@ -294,7 +280,7 @@ class _GameScreenState extends State<GameScreen> {
     List<PlayingCard> deck = [];
     for (var suit in PlayingCard.suits) {
       for (var value in PlayingCard.values) {
-        deck.add(PlayingCard(value, suit, false, key: Key('$value$suit')));
+        deck.add(PlayingCard(value, suit, false, key: UniqueKey()/*Key('$value$suit')*/));
       }
     }
     deck.shuffle();
@@ -356,7 +342,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void removeCardFromDragSource(PlayingCard card) {
-    // print('removeCardFromDragSource(${PlayingCard.dragSource})');
+    // print('removeCardFromDragSource(${card.currentPile})');
 
     setState(() {
       // if(PlayingCard.dragSource == PlayingCard.DRAG_SOURCE_WASTE) {
@@ -369,11 +355,14 @@ class _GameScreenState extends State<GameScreen> {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
           // print('Removing ${tableau[i].last.toStr()} from tableau $i');
           tableau[i].removeLast();
+
           if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
             tableau[i].last.isFaceUp = true;
-            tableau[i].last.value = tableau[i].last.value;
-            //print('Set tableau $i last card(${tableau[i].last
-            //    .toStr()}) to face up');
+            //HACK Remove last card and recreate it with isFaceUp set to true. Seems like not managing state properly.
+            PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
+            newLast.currentPile = tableau[i].last.currentPile;
+            tableau[i].removeLast();
+            tableau[i].add(newLast);
           }
         }
       }
@@ -390,7 +379,7 @@ class _GameScreenState extends State<GameScreen> {
       }
       for(int i = 0; i < 7; i++) {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
-          print('Transferring card from tableau $i');
+          // print('Transferring card from tableau $i');
           tableau[i].remove(card);
           target.add(card);
 
@@ -399,9 +388,12 @@ class _GameScreenState extends State<GameScreen> {
           }
 
           if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
-            PlayingCard newTopCard = tableau[i].last;
-            newTopCard.isFaceUp = true;
-            print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
+            tableau[i].last.isFaceUp = true;
+            //HACK Remove last card and recreate it with isFaceUp set to true. Seems like not managing state properly.
+            PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
+            newLast.currentPile = tableau[i].last.currentPile;
+            tableau[i].removeLast();
+            tableau[i].add(newLast);
           }
         }
       }
@@ -413,21 +405,5 @@ class _GameScreenState extends State<GameScreen> {
       }
       target.last.currentPile = newPile;
     });
-  }
-
-  //Used for debugging. Can be removed when issue is resolved.
-  void checkTopCardIsFaceUp() {
-    print('checkTopCardIsFaceUp()');
-    setState(() {
-      for(int i = 0; i < 7; i++) {
-        if(tableau[i].isNotEmpty) {
-          if(!tableau[i].last.isFaceUp) {
-            tableau[i].last.isFaceUp = true;
-            print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
-          }
-        }
-      }
-    });
-    print('checkTopCardIsFaceUp() done');
   }
 }

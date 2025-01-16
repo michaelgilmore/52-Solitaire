@@ -25,7 +25,7 @@ class PlayingCard extends StatefulWidget {
   static const List<int> DRAG_SOURCE_FOUNDATIONS = [DRAG_SOURCE_FOUNDATION_HEARTS, DRAG_SOURCE_FOUNDATION_DIAMONDS, DRAG_SOURCE_FOUNDATION_CLUBS, DRAG_SOURCE_FOUNDATION_SPADES];
   static const DRAG_SOURCE_STOCK = 12;
 
-  static PlayingCard placeholder = PlayingCard('', '', false, key: const Key('ph'));
+  static PlayingCard placeholder = PlayingCard('', '', false, key: UniqueKey()/*const Key('ph')*/);
 
   static double cardWidth = 100.0;
   static double cardHeight = 160.0;
@@ -41,7 +41,9 @@ class PlayingCard extends StatefulWidget {
   PlayingCard? cardOnTopOfThisOne;
 
   PlayingCard(this.value, this.suit, this.isFaceUp, {super.key}) :
-    suitColor = suit == hearts || suit == diamonds ? Colors.red : Colors.black;
+    suitColor = suit == hearts || suit == diamonds ? Colors.red : Colors.black {
+    // print('PlayingCard constructor($value$suit) - isFaceUp: $isFaceUp');
+  }
 
   @override
   State<PlayingCard> createState() => _PlayingCardState();
@@ -52,19 +54,11 @@ class PlayingCard extends StatefulWidget {
 }
 
 class _PlayingCardState extends State<PlayingCard> {
-
   Color cardColor = Colors.white;
 
   @override
-  void initState() {
-    print('PlayingCard initState(${widget.toStr()})');
-    super.initState();
-    print('widget.isFaceUp: ${widget.isFaceUp}');
-  }
-
-  @override
   Widget build(BuildContext context) {
-    print('PlayingCard build(${widget.toStr()}) - currentPile: ${widget.currentPile}, isFaceUp: ${widget.isFaceUp}');
+    // print('PlayingCard build(${widget.toStr()}) - currentPile: ${widget.currentPile}, isFaceUp: ${widget.isFaceUp}');
     cardColor = widget.isFaceUp ? Colors.white : Colors.blue;
 
     return Draggable(
