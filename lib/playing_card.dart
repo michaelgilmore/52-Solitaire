@@ -70,44 +70,22 @@ class _PlayingCardState extends State<PlayingCard> {
 
     return Draggable(
         data: widget,
-        feedback: Container(
-          width: PlayingCard.cardWidth,
-          height: PlayingCard.cardHeight,
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.black),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Text(widget.value + widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.topRightFontSize)),
-                ),
-                const Text(''),
-                Text(widget.value, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.fontSize)),
-                Text(widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.fontSize)),
-              ],
-            )
-          )
+        feedback: getCardContainer(),
+        child: getCardContainer(),
+    );
+  }
+
+  Container getCardContainer() {
+    return Container(
+        width: PlayingCard.cardWidth,
+        height: PlayingCard.cardHeight,
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Colors.black),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Container(
-          width: PlayingCard.cardWidth,
-          height: PlayingCard.cardHeight,
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.black),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Container(
             decoration: BoxDecoration(
               color: cardColor,
               borderRadius: BorderRadius.circular(8),
@@ -124,8 +102,7 @@ class _PlayingCardState extends State<PlayingCard> {
                 Text(widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.fontSize)),
               ],
             )
-          )
-        ),
+        )
     );
   }
 

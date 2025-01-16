@@ -204,7 +204,6 @@ class _MainScreenState extends State<MainScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    // SizedBox(height: 2*PlayingCard.cardHeight, width: 1),
                     for(int i = 0; i < 7; i++)
                       GestureDetector(
                         onDoubleTap: () {
@@ -223,8 +222,7 @@ class _MainScreenState extends State<MainScreen> {
                                 foundation[j].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[j];
                                 if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
                                   tableau[i].last.isFaceUp = true;
-                                  tableau[i].last.value = tableau[i].last.value;
-                                  //print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
+                                  print('Set tableau $i last card(${tableau[i].last.toStr()}) to face up');
                                 }
                                 return;
                               }
@@ -283,26 +281,26 @@ class _MainScreenState extends State<MainScreen> {
                 ),
 
                 //Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(onPressed: () {
-                      setState(() {
-                        for(int i = 0; i < 7; i++) {
-                          if(tableau[i].isNotEmpty) {
-                            tableau[i].last.isFaceUp = true;
-                            //print('Tableau $i top card(${tableau[i].last.toStr()}) ${tableau[i].last.isFaceUp}');
-                          }
-                        }
-                      });
-                    }, child: const Text('Show Face Up')),
-                    ElevatedButton(onPressed: () {
-                      checkTopCardIsFaceUp();
-                    }, child: const Text('Refresh'))
-                  ]
-                ),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                //   children: [
+                //     ElevatedButton(onPressed: () {
+                //       setState(() {
+                //         for(int i = 0; i < 7; i++) {
+                //           if(tableau[i].isNotEmpty) {
+                //             tableau[i].last.isFaceUp = true;
+                //             //print('Tableau $i top card(${tableau[i].last.toStr()}) ${tableau[i].last.isFaceUp}');
+                //           }
+                //         }
+                //       });
+                //     }, child: const Text('Show Face Up')),
+                //     ElevatedButton(onPressed: () {
+                //       checkTopCardIsFaceUp();
+                //     }, child: const Text('Refresh'))
+                //   ]
+                // ),
             
-                Text('${MediaQuery.of(context).size.width.toStringAsFixed(0)} x ${MediaQuery.of(context).size.height.toStringAsFixed(0)}'),
+                // Text('${MediaQuery.of(context).size.width.toStringAsFixed(0)} x ${MediaQuery.of(context).size.height.toStringAsFixed(0)}'),
               ],
             ),
           ),
