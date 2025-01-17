@@ -82,6 +82,7 @@ class _GameScreenState extends State<GameScreen> {
     screenWidth = MediaQuery.of(context).size.width;
 
     const double firstResponsiveWidthThreshold = 820;
+    const double secondResponsiveWidthThreshold = 500;
     double surroundingPadding = screenWidth > firstResponsiveWidthThreshold ? 50 : 25;
     double spaceBetweenWasteAndFoundation = screenWidth > firstResponsiveWidthThreshold ? 100 : 50;
 
@@ -92,7 +93,14 @@ class _GameScreenState extends State<GameScreen> {
     double cornerFontSize = 12;
     double spaceBetweenCenterAndCorner = 20;
 
-    if(screenWidth < firstResponsiveWidthThreshold) {
+    if(screenWidth < secondResponsiveWidthThreshold) {
+      cardHeight = 80;
+      cardWidth = 50;
+      centerFontSize = 12;
+      cornerFontSize = 6;
+      spaceBetweenCenterAndCorner = 8;
+    }
+    else if(screenWidth < firstResponsiveWidthThreshold) {
       cardHeight = 100;
       cardWidth = 63;
       centerFontSize = 16;
@@ -168,6 +176,7 @@ class _GameScreenState extends State<GameScreen> {
         padding: EdgeInsets.all(surroundingPadding),
         child: SingleChildScrollView(
           child: Column(
+            mainAxisSize: MainAxisSize.max,
             children: [
 
               //Stock, Waste, Foundation
@@ -347,7 +356,7 @@ class _GameScreenState extends State<GameScreen> {
                         },
                         builder: (context, candidateData, rejectedData) => SizedBox(
                           width: cardWidth,
-                          height: cardHeight * 2.5,
+                          height: cardHeight * 5,
                           //Draw tableau cards overlapping each other
                           child: Stack(
                             children: [
@@ -371,8 +380,6 @@ class _GameScreenState extends State<GameScreen> {
                   SizedBox(height: 10)
                 ],
               ),
-
-              Text('${MediaQuery.of(context).size.width.toStringAsFixed(0)} x ${MediaQuery.of(context).size.height.toStringAsFixed(0)}'),
             ],
           ),
         ),
