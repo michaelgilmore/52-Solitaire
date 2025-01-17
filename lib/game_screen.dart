@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gsolitaire/playing_card.dart';
+import 'package:gsolitaire/settings.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, required this.title});
@@ -22,6 +23,9 @@ class _GameScreenState extends State<GameScreen> {
   List<List<PlayingCard>> tableau = [];
 
   int _currentBottomNavIndex = 0;
+
+  late double screenWidth;
+  late double screenHeight;
 
   @override
   void initState() {
@@ -60,14 +64,46 @@ class _GameScreenState extends State<GameScreen> {
     if(_currentBottomNavIndex == BOTTOM_NAV_INDEX_RESET) {
       resetGame();
     }
+    else if(_currentBottomNavIndex == BOTTOM_NAV_INDEX_TOOLS) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => const Settings()
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     // print('GameScreen build()');
 
-    double surroundingPadding = MediaQuery.of(context).size.width < 600 ? 25 : 50;
-    double spaceBetweenWasteAndFoundation = MediaQuery.of(context).size.width < 600 ? 50 : 100;
+    screenHeight = MediaQuery.of(context).size.height;
+    screenWidth = MediaQuery.of(context).size.width;
+
+    const double firstResponsiveWidthThreshold = 820;
+    double surroundingPadding = screenWidth > firstResponsiveWidthThreshold ? 50 : 25;
+    double spaceBetweenWasteAndFoundation = screenWidth > firstResponsiveWidthThreshold ? 100 : 50;
+
+    double cardHeight = 0;
+    double cardWidth = 0;
+
+    if(screenWidth > firstResponsiveWidthThreshold) {
+      cardHeight = 160;
+      cardWidth = 100;
+    }
+    else {
+      cardHeight = 100;
+      cardWidth = 63;
+    }
+
+    //loop through all cards in foundation piles and set card height and width
+    for(int i = 0; i < 4; i++) {
+      for(int j = 0; j < foundation[i].length; j++) {
+        foundation[i][j].cardHeight = cardHeight;
+        foundation[i][j].cardWidth = cardWidth;
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -166,7 +202,7 @@ class _GameScreenState extends State<GameScreen> {
                       },
                       child: Column(
                           children: [
-                            waste.isNotEmpty ? waste.last : SizedBox(height: PlayingCard.cardHeight, width: PlayingCard.cardWidth),
+                            waste.isNotEmpty ? waste.last : SizedBox(height: cardHeight, width: cardWidth),
                             Text(waste.length.toString()),
                           ]
                       )
@@ -277,8 +313,8 @@ class _GameScreenState extends State<GameScreen> {
                           return false;
                         },
                         builder: (context, candidateData, rejectedData) => SizedBox(
-                          width: PlayingCard.cardWidth,
-                          height: PlayingCard.cardHeight * 2.5,
+                          width: cardWidth,
+                          height: cardHeight * 2.5,
                           //Draw tableau cards overlapping each other
                           child: Stack(
                             children: [
@@ -299,11 +335,11 @@ class _GameScreenState extends State<GameScreen> {
               //Spacer
               const Row(
                 children: [
-                  SizedBox(height: 50)
+                  SizedBox(height: 10)
                 ],
               ),
 
-              // Text('${MediaQuery.of(context).size.width.toStringAsFixed(0)} x ${MediaQuery.of(context).size.height.toStringAsFixed(0)}'),
+              Text('${MediaQuery.of(context).size.width.toStringAsFixed(0)} x ${MediaQuery.of(context).size.height.toStringAsFixed(0)}'),
             ],
           ),
         ),

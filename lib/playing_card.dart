@@ -27,8 +27,9 @@ class PlayingCard extends StatefulWidget {
 
   static PlayingCard placeholder = PlayingCard('', '', false, key: UniqueKey()/*const Key('ph')*/);
 
-  static double cardWidth = 100.0;
-  static double cardHeight = 160.0;
+  double cardWidth = 100.0;
+  double cardHeight = 160.0;
+
   static double fontSize = 24;
   static double topRightFontSize = 12;
 
@@ -56,6 +57,13 @@ class PlayingCard extends StatefulWidget {
 class _PlayingCardState extends State<PlayingCard> {
   Color cardColor = Colors.white;
 
+
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     // print('PlayingCard build(${widget.toStr()}) - currentPile: ${widget.currentPile}, isFaceUp: ${widget.isFaceUp}');
@@ -70,8 +78,8 @@ class _PlayingCardState extends State<PlayingCard> {
 
   Container getCardContainer() {
     return Container(
-        width: PlayingCard.cardWidth,
-        height: PlayingCard.cardHeight,
+        width: widget.cardWidth,
+        height: widget.cardHeight,
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -93,6 +101,11 @@ class _PlayingCardState extends State<PlayingCard> {
                 const Text(''),
                 Text(widget.value, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.fontSize)),
                 Text(widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.fontSize)),
+                const Text(''),
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Text(widget.value + widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.topRightFontSize)),
+                ),
               ],
             )
         )
