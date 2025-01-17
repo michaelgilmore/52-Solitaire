@@ -12,14 +12,22 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
 
+  final int BOTTOM_NAV_INDEX_HOME = 0;
+  final int BOTTOM_NAV_INDEX_RESET = 1;
+  final int BOTTOM_NAV_INDEX_TOOLS = 2;
+
   late List<PlayingCard> stock;
   List<PlayingCard> waste = [];
   List<List<PlayingCard>> foundation = [];
   List<List<PlayingCard>> tableau = [];
 
+  int _currentBottomNavIndex = 0;
+
   @override
   void initState() {
     super.initState();
+
+    _currentBottomNavIndex = BOTTOM_NAV_INDEX_HOME;
 
     stock = shuffledDeck();
 
@@ -44,11 +52,19 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  void _onBottomNavItemTapped(int index) {
+    setState(() {
+      _currentBottomNavIndex = index;
+    });
+
+    if(_currentBottomNavIndex == BOTTOM_NAV_INDEX_RESET) {
+      resetGame();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // print('GameScreen build()');
-
-    // checkTopCardIsFaceUp();
 
     double surroundingPadding = MediaQuery.of(context).size.width < 600 ? 25 : 50;
     double spaceBetweenWasteAndFoundation = MediaQuery.of(context).size.width < 600 ? 50 : 100;
@@ -58,8 +74,28 @@ class _GameScreenState extends State<GameScreen> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body:
-      Padding(
+      bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: Colors.white,
+          currentIndex: _currentBottomNavIndex,
+          onTap: _onBottomNavItemTapped,
+          unselectedItemColor: Colors.lightBlueAccent,
+          selectedItemColor: Colors.lightBlue,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.message),
+              label: 'Reset',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.handyman),
+              label: 'Tools',
+            ),
+          ]
+      ),
+      body: Padding(
         padding: EdgeInsets.all(surroundingPadding),
         child: SingleChildScrollView(
           child: Column(
@@ -404,6 +440,35 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
       target.last.currentPile = newPile;
+    });
+  }
+
+  void resetGame() {
+    setState(() {
+      stock = shuffledDeck();
+      waste.clear();
+      foundation.clear();
+      tableau.clear();
+
+      for (int j = 0; j < 7; j++) {
+        tableau.add([]);
+      }
+
+      //Deal cards to tableau
+      for(int i = 0; i <= 6; i++) {
+        for (int j = i; j < 7; j++) {
+          stock[0].currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[j];
+          stock[0].isFaceUp = j == i;
+          tableau[j].add(stock[0]);
+          stock.removeAt(0);
+        }
+      }
+
+      for(int i = 0; i < 4; i++) {
+        foundation.add([]);
+        foundation[i].add(PlayingCard('', PlayingCard.suits[i], true, key: UniqueKey()/*Key(PlayingCard.suits[i])*/));
+        foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
+      }
     });
   }
 }
