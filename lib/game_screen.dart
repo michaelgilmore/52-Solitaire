@@ -85,16 +85,35 @@ class _GameScreenState extends State<GameScreen> {
     double surroundingPadding = screenWidth > firstResponsiveWidthThreshold ? 50 : 25;
     double spaceBetweenWasteAndFoundation = screenWidth > firstResponsiveWidthThreshold ? 100 : 50;
 
-    double cardHeight = 0;
-    double cardWidth = 0;
+    //Default values for wider screen
+    double cardHeight = 160;
+    double cardWidth = 100;
+    double centerFontSize = 24;
+    double cornerFontSize = 12;
+    double spaceBetweenCenterAndCorner = 20;
 
-    if(screenWidth > firstResponsiveWidthThreshold) {
-      cardHeight = 160;
-      cardWidth = 100;
-    }
-    else {
+    if(screenWidth < firstResponsiveWidthThreshold) {
       cardHeight = 100;
       cardWidth = 63;
+      centerFontSize = 16;
+      cornerFontSize = 8;
+      spaceBetweenCenterAndCorner = 12;
+    }
+
+    //loop through all cards in stock and waste and set card height and width
+    for(int i = 0; i < stock.length; i++) {
+      stock[i].cardHeight = cardHeight;
+      stock[i].cardWidth = cardWidth;
+      stock[i].centerFontSize = centerFontSize;
+      stock[i].cornerFontSize = cornerFontSize;
+      stock[i].spaceBetweenCenterAndCorner = spaceBetweenCenterAndCorner;
+    }
+    for(int i = 0; i < waste.length; i++) {
+      waste[i].cardHeight = cardHeight;
+      waste[i].cardWidth = cardWidth;
+      waste[i].centerFontSize = centerFontSize;
+      waste[i].cornerFontSize = cornerFontSize;
+      waste[i].spaceBetweenCenterAndCorner = spaceBetweenCenterAndCorner;
     }
 
     //loop through all cards in foundation piles and set card height and width
@@ -102,6 +121,20 @@ class _GameScreenState extends State<GameScreen> {
       for(int j = 0; j < foundation[i].length; j++) {
         foundation[i][j].cardHeight = cardHeight;
         foundation[i][j].cardWidth = cardWidth;
+        foundation[i][j].centerFontSize = centerFontSize;
+        foundation[i][j].cornerFontSize = cornerFontSize;
+        foundation[i][j].spaceBetweenCenterAndCorner = spaceBetweenCenterAndCorner;
+      }
+    }
+
+    //loop through all cards in tableau and set card height and width
+    for(int i = 0; i < 7; i++) {
+      for(int j = 0; j < tableau[i].length; j++) {
+        tableau[i][j].cardHeight = cardHeight;
+        tableau[i][j].cardWidth = cardWidth;
+        tableau[i][j].centerFontSize = centerFontSize;
+        tableau[i][j].cornerFontSize = cornerFontSize;
+        tableau[i][j].spaceBetweenCenterAndCorner = spaceBetweenCenterAndCorner;
       }
     }
 

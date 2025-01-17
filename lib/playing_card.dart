@@ -30,8 +30,9 @@ class PlayingCard extends StatefulWidget {
   double cardWidth = 100.0;
   double cardHeight = 160.0;
 
-  static double fontSize = 24;
-  static double topRightFontSize = 12;
+  double centerFontSize = 24;
+  double cornerFontSize = 12;
+  double spaceBetweenCenterAndCorner = 20;
 
   String value;
   final String suit;
@@ -57,8 +58,6 @@ class PlayingCard extends StatefulWidget {
 class _PlayingCardState extends State<PlayingCard> {
   Color cardColor = Colors.white;
 
-
-
   @override
   void initState() {
     super.initState();
@@ -80,7 +79,7 @@ class _PlayingCardState extends State<PlayingCard> {
     return Container(
         width: widget.cardWidth,
         height: widget.cardHeight,
-        padding: const EdgeInsets.all(3),
+        padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: Colors.black),
@@ -96,15 +95,15 @@ class _PlayingCardState extends State<PlayingCard> {
               children: [
                 Align(
                   alignment: Alignment.topRight,
-                  child: Text(widget.value + widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.topRightFontSize)),
+                  child: Text(widget.value + widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: widget.cornerFontSize)),
                 ),
-                const Text(''),
-                Text(widget.value, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.fontSize)),
-                Text(widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.fontSize)),
-                const Text(''),
+                SizedBox(height: widget.spaceBetweenCenterAndCorner),
+                Text(widget.value, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: widget.centerFontSize)),
+                Text(widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: widget.centerFontSize)),
+                SizedBox(height: widget.spaceBetweenCenterAndCorner),
                 Align(
                   alignment: Alignment.bottomLeft,
-                  child: Text(widget.value + widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: PlayingCard.topRightFontSize)),
+                  child: Text(widget.value + widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: widget.cornerFontSize)),
                 ),
               ],
             )
