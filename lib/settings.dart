@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gsolitaire/main.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -14,6 +15,7 @@ class _SettingsState extends State<Settings> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          const Text(GSolitaireApp.APP_VERSION),
           const Text(
             'Settings - coming soon',
             style: TextStyle(fontSize: 24),

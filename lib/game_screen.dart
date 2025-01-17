@@ -178,6 +178,10 @@ class _GameScreenState extends State<GameScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.max,
             children: [
+              Visibility(
+                visible: stock.isEmpty && waste.isEmpty && foundation[0].length == 14 && foundation[1].length == 14 && foundation[2].length == 14 && foundation[3].length == 14,
+                child: const Text('YOU WIN!')
+              ),
 
               //Stock, Waste, Foundation
               Row(

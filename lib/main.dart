@@ -8,6 +8,8 @@ void main() {
 class GSolitaireApp extends StatelessWidget {
   const GSolitaireApp({super.key});
 
+  static const APP_VERSION = '1.0';
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
