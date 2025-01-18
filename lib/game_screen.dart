@@ -17,6 +17,7 @@ class _GameScreenState extends State<GameScreen> {
   final int BOTTOM_NAV_INDEX_HOME = 0;
   final int BOTTOM_NAV_INDEX_RESET = 1;
   final int BOTTOM_NAV_INDEX_TOOLS = 2;
+  final int BOTTOM_NAV_INDEX_NEXT_CARD = 3;
 
   late List<PlayingCard> stock;
   List<PlayingCard> waste = [];
@@ -79,6 +80,27 @@ class _GameScreenState extends State<GameScreen> {
             builder: (context) => const Settings()
         ),
       );
+    }
+    else if(_currentBottomNavIndex == BOTTOM_NAV_INDEX_NEXT_CARD) {
+      flipNextStockCard();
+    }
+  }
+
+  flipNextStockCard() {
+    // print('flipNextStockCard()');
+    if(stock.isNotEmpty) {
+      stock[0].currentPile = PlayingCard.DRAG_SOURCE_WASTE;
+      waste.add(stock[0]);
+      stock.removeAt(0);
+      waste.last.isFaceUp = true;
+    }
+    else {
+      stock = waste.toList();
+      for (var card in stock) {
+        card.isFaceUp = false;
+        card.currentPile = PlayingCard.DRAG_SOURCE_STOCK;
+      }
+      waste.clear();
     }
   }
 
@@ -154,6 +176,12 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
+    PlayingCard.placeholder.cardHeight = cardHeight;
+    PlayingCard.placeholder.cardWidth = cardWidth;
+    PlayingCard.placeholder.centerFontSize = centerFontSize;
+    PlayingCard.placeholder.cornerFontSize = cornerFontSize;
+    PlayingCard.placeholder.spaceBetweenCenterAndCorner = spaceBetweenCenterAndCorner;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -171,12 +199,16 @@ class _GameScreenState extends State<GameScreen> {
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.message),
+              icon: Icon(Icons.recycling),
               label: 'Reset',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.handyman),
               label: 'Tools',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.skip_next),
+              label: 'Next',
             ),
           ]
       ),
@@ -197,24 +229,7 @@ class _GameScreenState extends State<GameScreen> {
                 children: [
                   //Stock
                   GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          if(stock.isNotEmpty) {
-                            stock[0].currentPile = PlayingCard.DRAG_SOURCE_WASTE;
-                            waste.add(stock[0]);
-                            stock.removeAt(0);
-                            waste.last.isFaceUp = true;
-                          }
-                          else {
-                            stock = waste.toList();
-                            for (var card in stock) {
-                              card.isFaceUp = false;
-                              card.currentPile = PlayingCard.DRAG_SOURCE_STOCK;
-                            }
-                            waste.clear();
-                          }
-                        });
-                      },
+                      onTap: () => flipNextStockCard(),
                       child: Column(
                           children: [
                             stock.isNotEmpty ? stock[0] : PlayingCard.placeholder,
