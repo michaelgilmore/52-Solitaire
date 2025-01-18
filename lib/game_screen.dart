@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gsolitaire/playing_card.dart';
 import 'package:gsolitaire/settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, required this.title});
@@ -27,9 +28,16 @@ class _GameScreenState extends State<GameScreen> {
   late double screenWidth;
   late double screenHeight;
 
+  late final prefs;
+
+
   @override
   void initState() {
     super.initState();
+
+    SharedPreferences.getInstance().then((value) {
+       prefs = value;
+    });
 
     _currentBottomNavIndex = BOTTOM_NAV_INDEX_HOME;
 
@@ -179,7 +187,7 @@ class _GameScreenState extends State<GameScreen> {
             mainAxisSize: MainAxisSize.max,
             children: [
               Visibility(
-                visible: stock.isEmpty && waste.isEmpty && foundation[0].length == 14 && foundation[1].length == 14 && foundation[2].length == 14 && foundation[3].length == 14,
+                visible: wonGame(),
                 child: const Text('YOU WIN!')
               ),
 
@@ -523,7 +531,18 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void resetGame() {
+  bool wonGame() {
+    return stock.isEmpty && waste.isEmpty && foundation[0].length == 14 && foundation[1].length == 14 && foundation[2].length == 14 && foundation[3].length == 14;
+  }
+
+  void resetGame() async {
+
+    //If game was won, add to shared preferences count
+    if(wonGame()) {
+      final num_games_won = prefs.getInt('num_games_won') ?? 0;
+      await prefs.setInt('num_games_won', num_games_won + 1);
+    }
+
     setState(() {
       stock = shuffledDeck();
       waste.clear();
@@ -550,5 +569,8 @@ class _GameScreenState extends State<GameScreen> {
         foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
       }
     });
+
+    final num_games_played = prefs.getInt('num_games_played') ?? 0;
+    await prefs.setInt('num_games_played', num_games_played + 1);
   }
 }
