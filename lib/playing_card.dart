@@ -57,6 +57,8 @@ class PlayingCard extends StatefulWidget {
 
 class _PlayingCardState extends State<PlayingCard> {
   Color cardColor = Colors.white;
+  Color textColor = Colors.white;
+  final Color cardBorderColor = Colors.grey[500]!;
 
   @override
   void initState() {
@@ -67,6 +69,7 @@ class _PlayingCardState extends State<PlayingCard> {
   Widget build(BuildContext context) {
     // print('PlayingCard build(${widget.toStr()}) - currentPile: ${widget.currentPile}, isFaceUp: ${widget.isFaceUp}');
     cardColor = widget.isFaceUp ? Colors.white : Colors.blue;
+    textColor = widget.isFaceUp ? widget.suitColor : cardColor;
 
     return Draggable(
         data: widget,
@@ -82,7 +85,7 @@ class _PlayingCardState extends State<PlayingCard> {
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: Colors.black),
+          border: Border.all(color: cardBorderColor),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Container(
@@ -90,22 +93,37 @@ class _PlayingCardState extends State<PlayingCard> {
               color: cardColor,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Text(widget.value + widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: widget.cornerFontSize)),
-                ),
-                SizedBox(height: widget.spaceBetweenCenterAndCorner),
-                Text(widget.value, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: widget.centerFontSize)),
-                Text(widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: widget.centerFontSize)),
-                SizedBox(height: widget.spaceBetweenCenterAndCorner),
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Text(widget.value + widget.suit, style: TextStyle(color: widget.isFaceUp ? widget.suitColor : cardColor, fontSize: widget.cornerFontSize)),
-                ),
-              ],
+            child: Visibility(
+              visible: widget.isFaceUp,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Text(widget.value + widget.suit,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: widget.cornerFontSize,
+                          fontWeight: FontWeight.bold
+                        )
+                    ),
+                  ),
+                  SizedBox(height: widget.spaceBetweenCenterAndCorner),
+                  Text(widget.value, style: TextStyle(color: textColor, fontSize: widget.centerFontSize)),
+                  Text(widget.suit, style: TextStyle(color: textColor, fontSize: widget.centerFontSize)),
+                  SizedBox(height: widget.spaceBetweenCenterAndCorner),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Text(widget.value + widget.suit,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: widget.cornerFontSize,
+                        fontWeight: FontWeight.bold
+                      )
+                    ),
+                  ),
+                ],
+              ),
             )
         )
     );

@@ -24,6 +24,8 @@ class _GameScreenState extends State<GameScreen> {
   List<List<PlayingCard>> foundation = [];
   List<List<PlayingCard>> tableau = [];
 
+  double pileCountTextSize = 10;
+
   int _currentBottomNavIndex = 0;
 
   late double screenWidth;
@@ -88,20 +90,22 @@ class _GameScreenState extends State<GameScreen> {
 
   flipNextStockCard() {
     // print('flipNextStockCard()');
-    if(stock.isNotEmpty) {
-      stock[0].currentPile = PlayingCard.DRAG_SOURCE_WASTE;
-      waste.add(stock[0]);
-      stock.removeAt(0);
-      waste.last.isFaceUp = true;
-    }
-    else {
-      stock = waste.toList();
-      for (var card in stock) {
-        card.isFaceUp = false;
-        card.currentPile = PlayingCard.DRAG_SOURCE_STOCK;
+    setState(() {
+      if(stock.isNotEmpty) {
+        stock[0].currentPile = PlayingCard.DRAG_SOURCE_WASTE;
+        waste.add(stock[0]);
+        stock.removeAt(0);
+        waste.last.isFaceUp = true;
       }
-      waste.clear();
-    }
+      else {
+        stock = waste.toList();
+        for (var card in stock) {
+          card.isFaceUp = false;
+          card.currentPile = PlayingCard.DRAG_SOURCE_STOCK;
+        }
+        waste.clear();
+      }
+    });
   }
 
   @override
@@ -127,8 +131,8 @@ class _GameScreenState extends State<GameScreen> {
       cardHeight = 80;
       cardWidth = 50;
       centerFontSize = 12;
-      cornerFontSize = 6;
-      spaceBetweenCenterAndCorner = 8;
+      cornerFontSize = 8;
+      spaceBetweenCenterAndCorner = 5;
     }
     else if(screenWidth < firstResponsiveWidthThreshold) {
       cardHeight = 100;
@@ -233,7 +237,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: Column(
                           children: [
                             stock.isNotEmpty ? stock[0] : PlayingCard.placeholder,
-                            Text(stock.length.toString()),
+                            Text(stock.length.toString(), style: TextStyle(fontSize: pileCountTextSize)),
                           ]
                       )
                   ),
@@ -272,7 +276,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: Column(
                           children: [
                             waste.isNotEmpty ? waste.last : SizedBox(height: cardHeight, width: cardWidth),
-                            Text(waste.length.toString()),
+                            Text(waste.length.toString(), style: TextStyle(fontSize: pileCountTextSize)),
                           ]
                       )
                   ),
@@ -308,7 +312,8 @@ class _GameScreenState extends State<GameScreen> {
                       builder: (context, candidateData, rejectedData) => Column(
                         children: [
                           foundation[a].last,
-                          Text((foundation[a].length - 1).toString()),//TODO: Don't have empty be a card. Then we won't need to subtract 1 here.
+                          //TODO: Don't have empty be a card. Then we won't need to subtract 1 here.
+                          Text((foundation[a].length - 1).toString(), style: TextStyle(fontSize: pileCountTextSize)),
                         ],
                       ),
                     ),
