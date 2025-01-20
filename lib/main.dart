@@ -8,14 +8,14 @@ void main() {
 class GSolitaireApp extends StatelessWidget {
   const GSolitaireApp({super.key});
 
-  static const APP_VERSION = '1.1';
+  static const APP_VERSION = '1.2';
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'GSolitaire',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,

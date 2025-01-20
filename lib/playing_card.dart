@@ -38,9 +38,19 @@ class PlayingCard extends StatefulWidget {
   final String suit;
   final Color suitColor;
   bool isFaceUp = false;
-  int currentPile = PlayingCard.DRAG_SOURCE_STOCK;
+  int _currentPile = PlayingCard.DRAG_SOURCE_STOCK;
+  int get currentPile => _currentPile;
+  set currentPile(int newPile) {
+    // print('setting ${toStr()} currentPile to $newPile, was $_currentPile');
+    _currentPile = newPile;
+  }
 
-  PlayingCard? cardOnTopOfThisOne;
+  PlayingCard? _cardOnTopOfThisOne;
+  PlayingCard? get cardOnTopOfThisOne => _cardOnTopOfThisOne;
+  set cardOnTopOfThisOne(PlayingCard? card) {
+    print('setting ${toStr()} cardOnTopOfThisOne to ${card?.toStr()}');
+    _cardOnTopOfThisOne = card;
+  }
 
   PlayingCard(this.value, this.suit, this.isFaceUp, {super.key}) :
     suitColor = suit == hearts || suit == diamonds ? Colors.red : Colors.black {
@@ -56,6 +66,11 @@ class PlayingCard extends StatefulWidget {
 }
 
 class _PlayingCardState extends State<PlayingCard> {
+
+  //Debugging
+  bool showCurrentPile = false;
+  bool showCardOnTop = false;
+
   Color cardColor = Colors.white;
   Color textColor = Colors.white;
   final Color cardBorderColor = Colors.grey[500]!;
@@ -79,6 +94,19 @@ class _PlayingCardState extends State<PlayingCard> {
   }
 
   Container getCardContainer() {
+    String cardTopRow = '';
+    if(showCardOnTop) {
+      if(widget.cardOnTopOfThisOne == null) {
+        cardTopRow = 'XX';
+      } else {
+        cardTopRow = widget.cardOnTopOfThisOne!.toStr();
+      }
+    }
+    if(showCurrentPile) {
+      cardTopRow = '${widget.currentPile} ';
+    }
+    cardTopRow += widget.value + widget.suit;
+
     return Container(
         width: widget.cardWidth,
         height: widget.cardHeight,
@@ -100,7 +128,7 @@ class _PlayingCardState extends State<PlayingCard> {
                 children: [
                   Align(
                     alignment: Alignment.topRight,
-                    child: Text(widget.value + widget.suit,
+                    child: Text(cardTopRow,
                         style: TextStyle(
                           color: textColor,
                           fontSize: widget.cornerFontSize,

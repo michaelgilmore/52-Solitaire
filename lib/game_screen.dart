@@ -14,17 +14,21 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
 
+  //Debugging
+  final bool showCardOnTopButton = false;
+
   final int BOTTOM_NAV_INDEX_HOME = 0;
   final int BOTTOM_NAV_INDEX_RESET = 1;
   final int BOTTOM_NAV_INDEX_TOOLS = 2;
-  final int BOTTOM_NAV_INDEX_NEXT_CARD = 3;
+  final int BOTTOM_NAV_INDEX_USE_CARD = 3;
+  final int BOTTOM_NAV_INDEX_NEXT_CARD = 4;
 
   late List<PlayingCard> stock;
   List<PlayingCard> waste = [];
   List<List<PlayingCard>> foundation = [];
   List<List<PlayingCard>> tableau = [];
 
-  double pileCountTextSize = 10;
+  final pileCountTextStyle = const TextStyle(color: Colors.white, fontSize: 10);
 
   int _currentBottomNavIndex = 0;
 
@@ -86,6 +90,9 @@ class _GameScreenState extends State<GameScreen> {
     else if(_currentBottomNavIndex == BOTTOM_NAV_INDEX_NEXT_CARD) {
       flipNextStockCard();
     }
+    else if(_currentBottomNavIndex == BOTTOM_NAV_INDEX_USE_CARD) {
+      useCard();
+    }
   }
 
   flipNextStockCard() {
@@ -131,8 +138,8 @@ class _GameScreenState extends State<GameScreen> {
       cardHeight = 80;
       cardWidth = 50;
       centerFontSize = 12;
-      cornerFontSize = 8;
-      spaceBetweenCenterAndCorner = 5;
+      cornerFontSize = 10;
+      spaceBetweenCenterAndCorner = 2;
     }
     else if(screenWidth < firstResponsiveWidthThreshold) {
       cardHeight = 100;
@@ -191,6 +198,7 @@ class _GameScreenState extends State<GameScreen> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
+      backgroundColor: Theme.of(context).colorScheme.primary,
       bottomNavigationBar: BottomNavigationBar(
           backgroundColor: Colors.white,
           currentIndex: _currentBottomNavIndex,
@@ -209,6 +217,10 @@ class _GameScreenState extends State<GameScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.handyman),
               label: 'Tools',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.pan_tool_alt),
+              label: 'Use',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.skip_next),
@@ -237,7 +249,7 @@ class _GameScreenState extends State<GameScreen> {
                       child: Column(
                           children: [
                             stock.isNotEmpty ? stock[0] : PlayingCard.placeholder,
-                            Text(stock.length.toString(), style: TextStyle(fontSize: pileCountTextSize)),
+                            Text(stock.length.toString(), style: pileCountTextStyle),
                           ]
                       )
                   ),
@@ -245,38 +257,12 @@ class _GameScreenState extends State<GameScreen> {
                   //Waste
                   GestureDetector(
                       onDoubleTap: () {
-                        setState(() {
-                          if(waste.isEmpty) {
-                            return;
-                          }
-
-                          PlayingCard topCard = waste.last;
-
-                          //Check each foundation pile to see if the top card can be moved there
-                          for(int i = 0; i < 4; i++) {
-                            if(isValidFoundationDrop(foundation[i].last, topCard)) {
-                              // print('Moving card to foundation');
-                              foundation[i].add(waste.removeLast());
-                              foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
-                              return;
-                            }
-                          }
-
-                          //Check each tableau pile to see if the top card can be moved there
-                          for(int i = 0; i < 7; i++) {
-                            if(isValidTableauDrop(tableau[i].isNotEmpty ? tableau[i].last : null, topCard)) {
-                              // print('Moving card to tableau');
-                              tableau[i].add(waste.removeLast());
-                              tableau[i].last.currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[i];
-                              return;
-                            }
-                          }
-                        });
+                        useCard();
                       },
                       child: Column(
                           children: [
                             waste.isNotEmpty ? waste.last : SizedBox(height: cardHeight, width: cardWidth),
-                            Text(waste.length.toString(), style: TextStyle(fontSize: pileCountTextSize)),
+                            Text(waste.length.toString(), style: pileCountTextStyle),
                           ]
                       )
                   ),
@@ -313,7 +299,7 @@ class _GameScreenState extends State<GameScreen> {
                         children: [
                           foundation[a].last,
                           //TODO: Don't have empty be a card. Then we won't need to subtract 1 here.
-                          Text((foundation[a].length - 1).toString(), style: TextStyle(fontSize: pileCountTextSize)),
+                          Text((foundation[a].length - 1).toString(), style: pileCountTextStyle),
                         ],
                       ),
                     ),
@@ -354,6 +340,7 @@ class _GameScreenState extends State<GameScreen> {
                                 //HACK Remove last card and recreate it with isFaceUp set to true. Seems like not managing state properly.
                                 PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
                                 newLast.currentPile = tableau[i].last.currentPile;
+                                newLast.cardOnTopOfThisOne = null;
                                 tableau[i].removeLast();
                                 tableau[i].add(newLast);
                               }
@@ -367,8 +354,10 @@ class _GameScreenState extends State<GameScreen> {
                           PlayingCard droppedCard = data.data;
 
                           if(isValidTableauDrop(tableau[i].isNotEmpty ? tableau[i].last : null, droppedCard)) {
-                            // print('Accepting tableau drop');
+                            print('Accepting tableau drop ${droppedCard.toStr()}');
+
                             if(tableau[i].isNotEmpty) {
+                              print('Setting cardOnTopOfThisOne for ${tableau[i].last.toStr()} to ${droppedCard.toStr()}');
                               tableau[i].last.cardOnTopOfThisOne = droppedCard;
                             }
                             addCardFromDragSource(droppedCard, tableau[i], PlayingCard.DRAG_SOURCE_TABLEAUS[i]);
@@ -412,6 +401,24 @@ class _GameScreenState extends State<GameScreen> {
                   SizedBox(height: 10)
                 ],
               ),
+
+              Visibility(
+                visible: showCardOnTopButton,
+                child: ElevatedButton(
+                  onPressed: () {
+                    //Loop through all cards in all tableau piles and print their card on top
+                    for(int i = 0; i < 7; i++) {
+                      if(tableau[i].isNotEmpty) {
+                        //Loop through all cards in this tableau pile and print its card on top
+                        for(int j = 0; j < tableau[i].length; j++) {
+                          print('Tableau ${i+1} card ${tableau[i][j].toStr()} card on top of this one is ${tableau[i][j].cardOnTopOfThisOne?.toStr()}');
+                        }
+                      }
+                    }
+                  },
+                  child: const Text('Print cards on top')
+                ),
+              )
             ],
           ),
         ),
@@ -486,7 +493,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void removeCardFromDragSource(PlayingCard card) {
-    // print('removeCardFromDragSource(${card.currentPile})');
+    print('removeCardFromDragSource(${card.currentPile})');
 
     setState(() {
       // if(PlayingCard.dragSource == PlayingCard.DRAG_SOURCE_WASTE) {
@@ -514,27 +521,39 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void addCardFromDragSource(PlayingCard card, List<PlayingCard> target, int newPile) {
-    // print('addCardFromDragSource(${card.currentPile})');
+    print('addCardFromDragSource(${card.currentPile})');
 
     setState(() {
       if(card.currentPile == PlayingCard.DRAG_SOURCE_WASTE) {
         // print('Transferring card from waste');
         target.add(waste.removeLast());
+        target.last.currentPile = newPile;
       }
       for(int i = 0; i < 7; i++) {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
-          // print('Transferring card from tableau $i');
+          print('Transferring card from tableau ${i+1} to $newPile');
+
+          // if(newPile > 0 && tableau[newPile - 1].isNotEmpty) {
+          //   tableau[newPile - 1].last.cardOnTopOfThisOne = card;
+          // }
+
           tableau[i].remove(card);
           target.add(card);
+          target.last.currentPile = newPile;
 
           if(card.cardOnTopOfThisOne != null) {
+            print('Adding card on top of this one ${card.cardOnTopOfThisOne!.toStr()}');
             addCardFromDragSource(card.cardOnTopOfThisOne!, target, newPile);
+          }
+          else {
+            print('No card on top of ${card.toStr()}');
           }
 
           if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
             tableau[i].last.isFaceUp = true;
             //HACK Remove last card and recreate it with isFaceUp set to true. Seems like not managing state properly.
             PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
+            print('Setting newLast card to ${newLast.toStr()}');
             newLast.currentPile = tableau[i].last.currentPile;
             tableau[i].removeLast();
             tableau[i].add(newLast);
@@ -543,11 +562,11 @@ class _GameScreenState extends State<GameScreen> {
       }
       for(int i = 0; i < 4; i++) {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_FOUNDATIONS[i]) {
-          // print('Transferring card from foundation $i');
+          // print('Transferring card from foundation ${i+1} to $newPile');
           target.add(foundation[i].removeLast());
         }
+        target.last.currentPile = newPile;
       }
-      target.last.currentPile = newPile;
     });
   }
 
@@ -592,5 +611,37 @@ class _GameScreenState extends State<GameScreen> {
 
     final num_games_played = prefs.getInt('num_games_played') ?? 0;
     await prefs.setInt('num_games_played', num_games_played + 1);
+  }
+
+  void useCard() {
+    setState(() {
+      if(waste.isEmpty) {
+        return;
+      }
+
+      //Check each foundation pile to see if the top card can be moved there
+      for(int i = 0; i < 4; i++) {
+        if(isValidFoundationDrop(foundation[i].last, waste.last)) {
+          // print('Moving card to foundation');
+          foundation[i].last.cardOnTopOfThisOne = waste.last;
+          foundation[i].add(waste.removeLast());
+          foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
+          return;
+        }
+      }
+
+      //Check each tableau pile to see if the top card can be moved there
+      for(int i = 0; i < 7; i++) {
+        if(isValidTableauDrop(tableau[i].isNotEmpty ? tableau[i].last : null, waste.last)) {
+          // print('Moving card to tableau');
+          if(tableau[i].isNotEmpty) {
+            tableau[i].last.cardOnTopOfThisOne = waste.last;
+          }
+          tableau[i].add(waste.removeLast());
+          tableau[i].last.currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[i];
+          return;
+        }
+      }
+    });
   }
 }
