@@ -61,6 +61,14 @@ class _SettingsState extends State<Settings> {
             style: const TextStyle(fontSize: 20)),
         Text('Games Won: ${prefs.getInt('num_games_won') ?? 0}',
             style: const TextStyle(fontSize: 20)),
+        ElevatedButton(
+          onPressed: () {
+            prefs.setInt('num_games_played', 0);
+            prefs.setInt('num_games_won', 0);
+            setState(() {});
+          },
+          child: const Text('Reset Counts')
+        )
       ],
     );
   }

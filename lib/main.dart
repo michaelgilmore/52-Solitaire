@@ -8,7 +8,7 @@ void main() {
 class GSolitaireApp extends StatelessWidget {
   const GSolitaireApp({super.key});
 
-  static const APP_VERSION = '1.2';
+  static const APP_VERSION = '1.3';
 
   @override
   Widget build(BuildContext context) {

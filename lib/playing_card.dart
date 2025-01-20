@@ -25,8 +25,6 @@ class PlayingCard extends StatefulWidget {
   static const List<int> DRAG_SOURCE_FOUNDATIONS = [DRAG_SOURCE_FOUNDATION_HEARTS, DRAG_SOURCE_FOUNDATION_DIAMONDS, DRAG_SOURCE_FOUNDATION_CLUBS, DRAG_SOURCE_FOUNDATION_SPADES];
   static const DRAG_SOURCE_STOCK = 12;
 
-  static PlayingCard placeholder = PlayingCard('', '', false, key: UniqueKey()/*const Key('ph')*/);
-
   double cardWidth = 100.0;
   double cardHeight = 160.0;
 
@@ -48,7 +46,7 @@ class PlayingCard extends StatefulWidget {
   PlayingCard? _cardOnTopOfThisOne;
   PlayingCard? get cardOnTopOfThisOne => _cardOnTopOfThisOne;
   set cardOnTopOfThisOne(PlayingCard? card) {
-    print('setting ${toStr()} cardOnTopOfThisOne to ${card?.toStr()}');
+    // print('setting ${toStr()} cardOnTopOfThisOne to ${card?.toStr()}');
     _cardOnTopOfThisOne = card;
   }
 

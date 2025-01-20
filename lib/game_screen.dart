@@ -24,6 +24,7 @@ class _GameScreenState extends State<GameScreen> {
   final int BOTTOM_NAV_INDEX_NEXT_CARD = 4;
 
   late List<PlayingCard> stock;
+  late List<PlayingCard> savedDeck;
   List<PlayingCard> waste = [];
   List<List<PlayingCard>> foundation = [];
   List<List<PlayingCard>> tableau = [];
@@ -37,9 +38,13 @@ class _GameScreenState extends State<GameScreen> {
 
   late final prefs;
 
+  bool replayLastGame = false;
+  bool youHaveWon = false;
+
 
   @override
   void initState() {
+    // print('GameScreen initState()');
     super.initState();
 
     SharedPreferences.getInstance().then((value) {
@@ -48,7 +53,11 @@ class _GameScreenState extends State<GameScreen> {
 
     _currentBottomNavIndex = BOTTOM_NAV_INDEX_HOME;
 
-    stock = shuffledDeck();
+    stock = replayLastGame ? savedDeck.toList() : shuffledDeck();
+    savedDeck = stock.toList();
+    waste.clear();
+    foundation.clear();
+    tableau.clear();
 
     for (int j = 0; j < 7; j++) {
       tableau.add([]);
@@ -69,6 +78,7 @@ class _GameScreenState extends State<GameScreen> {
       foundation[i].add(PlayingCard('', PlayingCard.suits[i], true, key: UniqueKey()/*Key(PlayingCard.suits[i])*/));
       foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
     }
+
   }
 
   void _onBottomNavItemTapped(int index) {
@@ -135,9 +145,9 @@ class _GameScreenState extends State<GameScreen> {
     double spaceBetweenCenterAndCorner = 20;
 
     if(screenWidth < secondResponsiveWidthThreshold) {
-      cardHeight = 80;
-      cardWidth = 50;
-      centerFontSize = 12;
+      cardHeight = 82;
+      cardWidth = 51;
+      centerFontSize = 13;
       cornerFontSize = 10;
       spaceBetweenCenterAndCorner = 2;
     }
@@ -187,12 +197,6 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
-    PlayingCard.placeholder.cardHeight = cardHeight;
-    PlayingCard.placeholder.cardWidth = cardWidth;
-    PlayingCard.placeholder.centerFontSize = centerFontSize;
-    PlayingCard.placeholder.cornerFontSize = cornerFontSize;
-    PlayingCard.placeholder.spaceBetweenCenterAndCorner = spaceBetweenCenterAndCorner;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -236,7 +240,7 @@ class _GameScreenState extends State<GameScreen> {
             children: [
               Visibility(
                 visible: wonGame(),
-                child: const Text('YOU WIN!')
+                child: const Text('YOU WIN!', style: TextStyle(color: Colors.white, fontSize: 50)),
               ),
 
               //Stock, Waste, Foundation
@@ -248,7 +252,7 @@ class _GameScreenState extends State<GameScreen> {
                       onTap: () => flipNextStockCard(),
                       child: Column(
                           children: [
-                            stock.isNotEmpty ? stock[0] : PlayingCard.placeholder,
+                            stock.isNotEmpty ? stock[0] : SizedBox(height: cardHeight, width: cardWidth),
                             Text(stock.length.toString(), style: pileCountTextStyle),
                           ]
                       )
@@ -571,10 +575,20 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   bool wonGame() {
+    if(youHaveWon) {
+      return true;
+    }
     return stock.isEmpty && waste.isEmpty && foundation[0].length == 14 && foundation[1].length == 14 && foundation[2].length == 14 && foundation[3].length == 14;
   }
 
+  void setReplayLastGame(bool replayGame) {
+    replayLastGame = replayGame;
+  }
+
   void resetGame() async {
+    // print('resetGame()');
+
+    youHaveWon = false;
 
     //If game was won, add to shared preferences count
     if(wonGame()) {
@@ -582,40 +596,108 @@ class _GameScreenState extends State<GameScreen> {
       await prefs.setInt('num_games_won', num_games_won + 1);
     }
 
-    setState(() {
-      stock = shuffledDeck();
-      waste.clear();
-      foundation.clear();
-      tableau.clear();
+    //show dialog box asking if you want to start a new game or replay the last game
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('New Game'),
+          content: const Text('Would you like to start a new game or replay the last game?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                replayLastGame = false;
+              },
+              child: const Text('New Game'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                replayLastGame = true;
+              },
+              child: const Text('Replay Last Game'),
+            ),
+          ],
+        );
+      },
+    );
 
-      for (int j = 0; j < 7; j++) {
-        tableau.add([]);
-      }
+    stock = replayLastGame ? savedDeck.toList() : shuffledDeck();
+    savedDeck = stock.toList();
 
-      //Deal cards to tableau
-      for(int i = 0; i <= 6; i++) {
-        for (int j = i; j < 7; j++) {
-          stock[0].currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[j];
-          stock[0].isFaceUp = j == i;
-          tableau[j].add(stock[0]);
-          stock.removeAt(0);
-        }
-      }
+    //loop through all stock cards and set isFaceUp to false
+    for(int i = 0; i < stock.length; i++) {
+      stock[i].isFaceUp = false;
+      stock[i].cardOnTopOfThisOne = null;
+      stock[i].currentPile = PlayingCard.DRAG_SOURCE_STOCK;
+    }
 
-      for(int i = 0; i < 4; i++) {
-        foundation.add([]);
-        foundation[i].add(PlayingCard('', PlayingCard.suits[i], true, key: UniqueKey()/*Key(PlayingCard.suits[i])*/));
-        foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
+    waste.clear();
+    foundation.clear();
+    tableau.clear();
+
+    for (int j = 0; j < 7; j++) {
+      tableau.add([]);
+    }
+
+    //Deal cards to tableau
+    for(int i = 0; i <= 6; i++) {
+      for (int j = i; j < 7; j++) {
+        stock[0].currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[j];
+        stock[0].cardOnTopOfThisOne = null;
+        stock[0].isFaceUp = j == i;
+        tableau[j].add(stock[0]);
+        stock.removeAt(0);
       }
-    });
+    }
+
+    for(int i = 0; i < 4; i++) {
+      foundation.add([]);
+      foundation[i].add(PlayingCard('', PlayingCard.suits[i], true, key: UniqueKey()/*Key(PlayingCard.suits[i])*/));
+      foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
+    }
+
+    setState(() {});
 
     final num_games_played = prefs.getInt('num_games_played') ?? 0;
     await prefs.setInt('num_games_played', num_games_played + 1);
   }
 
+  void checkForWin() {
+    if(waste.isEmpty) {
+      if(stock.isEmpty) {
+        //If all cards in all piles of tableau are face up, set you have won
+        bool allFaceUp = true;
+        for(int i = 0; i < 7; i++) {
+          if(tableau[i].isNotEmpty) {
+            for(PlayingCard card in tableau[i]) {
+              if(!card.isFaceUp) {
+                // print('Not all cards are face up, tableau $i card ${card.toStr()}');
+                allFaceUp = false;
+                break;
+              }
+            }
+            if(allFaceUp == false) {
+              break;
+            }
+          }
+        }
+        if(allFaceUp) {
+          setState(() {
+            youHaveWon = true;
+          });
+        }
+      }
+      return;
+    }
+  }
   void useCard() {
+    // print('useCard()');
+
     setState(() {
       if(waste.isEmpty) {
+        checkForWin();
         return;
       }
 
@@ -642,6 +724,8 @@ class _GameScreenState extends State<GameScreen> {
           return;
         }
       }
+
+      checkForWin();
     });
   }
 }
