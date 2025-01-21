@@ -39,7 +39,7 @@ class _GameScreenState extends State<GameScreen> {
   late final prefs;
 
   bool replayLastGame = false;
-  bool youHaveWon = false;
+  bool youWillWin = false;
 
 
   @override
@@ -358,10 +358,10 @@ class _GameScreenState extends State<GameScreen> {
                           PlayingCard droppedCard = data.data;
 
                           if(isValidTableauDrop(tableau[i].isNotEmpty ? tableau[i].last : null, droppedCard)) {
-                            print('Accepting tableau drop ${droppedCard.toStr()}');
+                            // print('Accepting tableau drop ${droppedCard.toStr()}');
 
                             if(tableau[i].isNotEmpty) {
-                              print('Setting cardOnTopOfThisOne for ${tableau[i].last.toStr()} to ${droppedCard.toStr()}');
+                              // print('Setting cardOnTopOfThisOne for ${tableau[i].last.toStr()} to ${droppedCard.toStr()}');
                               tableau[i].last.cardOnTopOfThisOne = droppedCard;
                             }
                             addCardFromDragSource(droppedCard, tableau[i], PlayingCard.DRAG_SOURCE_TABLEAUS[i]);
@@ -525,7 +525,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void addCardFromDragSource(PlayingCard card, List<PlayingCard> target, int newPile) {
-    print('addCardFromDragSource(${card.currentPile})');
+    // print('addCardFromDragSource(${card.currentPile})');
 
     setState(() {
       if(card.currentPile == PlayingCard.DRAG_SOURCE_WASTE) {
@@ -535,7 +535,7 @@ class _GameScreenState extends State<GameScreen> {
       }
       for(int i = 0; i < 7; i++) {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
-          print('Transferring card from tableau ${i+1} to $newPile');
+          // print('Transferring card from tableau ${i+1} to $newPile');
 
           // if(newPile > 0 && tableau[newPile - 1].isNotEmpty) {
           //   tableau[newPile - 1].last.cardOnTopOfThisOne = card;
@@ -546,18 +546,18 @@ class _GameScreenState extends State<GameScreen> {
           target.last.currentPile = newPile;
 
           if(card.cardOnTopOfThisOne != null) {
-            print('Adding card on top of this one ${card.cardOnTopOfThisOne!.toStr()}');
+            // print('Adding card on top of this one ${card.cardOnTopOfThisOne!.toStr()}');
             addCardFromDragSource(card.cardOnTopOfThisOne!, target, newPile);
           }
           else {
-            print('No card on top of ${card.toStr()}');
+            // print('No card on top of ${card.toStr()}');
           }
 
           if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
             tableau[i].last.isFaceUp = true;
             //HACK Remove last card and recreate it with isFaceUp set to true. Seems like not managing state properly.
             PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
-            print('Setting newLast card to ${newLast.toStr()}');
+            // print('Setting newLast card to ${newLast.toStr()}');
             newLast.currentPile = tableau[i].last.currentPile;
             tableau[i].removeLast();
             tableau[i].add(newLast);
@@ -575,10 +575,18 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   bool wonGame() {
-    if(youHaveWon) {
-      return true;
+    // print('wonGame()');
+
+    //Determine if you just won
+    bool youJustWon = stock.isEmpty && waste.isEmpty && foundation[0].length == 14 && foundation[1].length == 14 && foundation[2].length == 14 && foundation[3].length == 14;
+    bool returnValue = youWillWin || youJustWon;
+    if(returnValue) {
+      int numGamesWon = prefs.getInt('num_games_won') ?? 0;
+      prefs.setInt('num_games_won', numGamesWon + 1);
+      setState(() {});
+      youWillWin = false;
     }
-    return stock.isEmpty && waste.isEmpty && foundation[0].length == 14 && foundation[1].length == 14 && foundation[2].length == 14 && foundation[3].length == 14;
+    return returnValue;
   }
 
   void setReplayLastGame(bool replayGame) {
@@ -588,13 +596,7 @@ class _GameScreenState extends State<GameScreen> {
   void resetGame() async {
     // print('resetGame()');
 
-    youHaveWon = false;
-
-    //If game was won, add to shared preferences count
-    if(wonGame()) {
-      final num_games_won = prefs.getInt('num_games_won') ?? 0;
-      await prefs.setInt('num_games_won', num_games_won + 1);
-    }
+    youWillWin = false;
 
     //show dialog box asking if you want to start a new game or replay the last game
     await showDialog(
@@ -685,13 +687,14 @@ class _GameScreenState extends State<GameScreen> {
         }
         if(allFaceUp) {
           setState(() {
-            youHaveWon = true;
+            youWillWin = true;
           });
         }
       }
       return;
     }
   }
+
   void useCard() {
     // print('useCard()');
 
