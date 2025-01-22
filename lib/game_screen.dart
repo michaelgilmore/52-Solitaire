@@ -55,30 +55,8 @@ class _GameScreenState extends State<GameScreen> {
 
     stock = replayLastGame ? savedDeck.toList() : shuffledDeck();
     savedDeck = stock.toList();
-    waste.clear();
-    foundation.clear();
-    tableau.clear();
 
-    for (int j = 0; j < 7; j++) {
-      tableau.add([]);
-    }
-
-    //Deal cards to tableau
-    for(int i = 0; i <= 6; i++) {
-      for (int j = i; j < 7; j++) {
-        stock[0].currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[j];
-        stock[0].isFaceUp = j == i;
-        tableau[j].add(stock[0]);
-        stock.removeAt(0);
-      }
-    }
-
-    for(int i = 0; i < 4; i++) {
-      foundation.add([]);
-      foundation[i].add(PlayingCard('', PlayingCard.suits[i], true, key: UniqueKey()/*Key(PlayingCard.suits[i])*/));
-      foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
-    }
-
+    setUpGame();
   }
 
   void _onBottomNavItemTapped(int index) {
@@ -107,6 +85,7 @@ class _GameScreenState extends State<GameScreen> {
 
   flipNextStockCard() {
     // print('flipNextStockCard()');
+
     setState(() {
       if(stock.isNotEmpty) {
         stock[0].currentPile = PlayingCard.DRAG_SOURCE_WASTE;
@@ -176,24 +155,30 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     //loop through all cards in foundation piles and set card height and width
-    for(int i = 0; i < 4; i++) {
-      for(int j = 0; j < foundation[i].length; j++) {
-        foundation[i][j].cardHeight = cardHeight;
-        foundation[i][j].cardWidth = cardWidth;
-        foundation[i][j].centerFontSize = centerFontSize;
-        foundation[i][j].cornerFontSize = cornerFontSize;
-        foundation[i][j].spaceBetweenCenterAndCorner = spaceBetweenCenterAndCorner;
+    for(int i = 0; i < foundation.length; i++) {
+      if(foundation[i].isNotEmpty) {
+        for (int j = 0; j < foundation[i].length; j++) {
+          foundation[i][j].cardHeight = cardHeight;
+          foundation[i][j].cardWidth = cardWidth;
+          foundation[i][j].centerFontSize = centerFontSize;
+          foundation[i][j].cornerFontSize = cornerFontSize;
+          foundation[i][j].spaceBetweenCenterAndCorner =
+              spaceBetweenCenterAndCorner;
+        }
       }
     }
 
     //loop through all cards in tableau and set card height and width
-    for(int i = 0; i < 7; i++) {
-      for(int j = 0; j < tableau[i].length; j++) {
-        tableau[i][j].cardHeight = cardHeight;
-        tableau[i][j].cardWidth = cardWidth;
-        tableau[i][j].centerFontSize = centerFontSize;
-        tableau[i][j].cornerFontSize = cornerFontSize;
-        tableau[i][j].spaceBetweenCenterAndCorner = spaceBetweenCenterAndCorner;
+    for(int i = 0; i < tableau.length; i++) {
+      if(tableau[i].isNotEmpty) {
+        for (int j = 0; j < tableau[i].length; j++) {
+          tableau[i][j].cardHeight = cardHeight;
+          tableau[i][j].cardWidth = cardWidth;
+          tableau[i][j].centerFontSize = centerFontSize;
+          tableau[i][j].cornerFontSize = cornerFontSize;
+          tableau[i][j].spaceBetweenCenterAndCorner =
+              spaceBetweenCenterAndCorner;
+        }
       }
     }
 
@@ -252,7 +237,15 @@ class _GameScreenState extends State<GameScreen> {
                       onTap: () => flipNextStockCard(),
                       child: Column(
                           children: [
-                            stock.isNotEmpty ? stock[0] : SizedBox(height: cardHeight, width: cardWidth),
+                            stock.isNotEmpty ? stock[0] : Container(
+                              height: cardHeight,
+                              width: cardWidth,
+                              //Add dashed gray border around stock pile
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey, style: BorderStyle.solid, width: 1),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                            ),
                             Text(stock.length.toString(), style: pileCountTextStyle),
                           ]
                       )
@@ -274,26 +267,33 @@ class _GameScreenState extends State<GameScreen> {
                   SizedBox(width: spaceBetweenWasteAndFoundation),
 
                   //Foundation
-                  for(int a = 0; a < 4; a++)
+                  for(int a = 0; a < foundation.length; a++)
                     DragTarget(
                       onAcceptWithDetails: (DragTargetDetails data) {
                         PlayingCard droppedCard = data.data;
                         // print('onAcceptWithDetails ${droppedCard.toStr()}');
 
-                        if(isValidFoundationDrop(foundation[a].last, droppedCard)) {
-                          // print('Accepting foundation drop');
-                          foundation[a].add(droppedCard);
-                          removeCardFromDragSource(droppedCard);
-                          foundation[a].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[a];
+                        if(foundation[a].isNotEmpty) {
+                          if (isValidFoundationDrop(
+                              foundation[a].last, droppedCard)) {
+                            // print('Accepting foundation drop');
+                            foundation[a].add(droppedCard);
+                            removeCardFromDragSource(droppedCard);
+                            foundation[a].last.currentPile = PlayingCard
+                                .DRAG_SOURCE_FOUNDATIONS[a];
+                          }
                         }
                       },
                       onWillAcceptWithDetails: (DragTargetDetails data) {
                         PlayingCard droppedCard = data.data;
                         // print('onWillAcceptWithDetails ${droppedCard.toStr()}');
 
-                        if(isValidFoundationDrop(foundation[a].last, droppedCard)) {
-                          // print('Will accept foundation drop');
-                          return true;
+                        if(foundation[a].isNotEmpty) {
+                          if (isValidFoundationDrop(
+                              foundation[a].last, droppedCard)) {
+                            // print('Will accept foundation drop');
+                            return true;
+                          }
                         }
 
                         // print('Rejecting drop');
@@ -301,9 +301,16 @@ class _GameScreenState extends State<GameScreen> {
                       },
                       builder: (context, candidateData, rejectedData) => Column(
                         children: [
-                          foundation[a].last,
-                          //TODO: Don't have empty be a card. Then we won't need to subtract 1 here.
-                          Text((foundation[a].length - 1).toString(), style: pileCountTextStyle),
+                          foundation[a].isNotEmpty ? foundation[a].last : Container(
+                            height: cardHeight,
+                            width: cardWidth,
+                            //Add dashed gray border around foundation pile
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey, style: BorderStyle.solid, width: 1),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          Text((foundation[a].length).toString(), style: pileCountTextStyle),
                         ],
                       ),
                     ),
@@ -321,10 +328,11 @@ class _GameScreenState extends State<GameScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  for(int i = 0; i < 7; i++)
+                  for(int i = 0; i < tableau.length; i++)
                     GestureDetector(
                       onDoubleTap: () {
                         // print('Double tap on tableau $i card ${tableau[i].last.toStr()}');
+
                         setState(() {
                           if(tableau[i].isEmpty) {
                             return;
@@ -332,23 +340,53 @@ class _GameScreenState extends State<GameScreen> {
 
                           PlayingCard topCard = tableau[i].last;
 
-                          //Check each foundation pile to see if the top card can be moved there
-                          for(int j = 0; j < 4; j++) {
-                            if(isValidFoundationDrop(foundation[j].last, topCard)) {
-                              // print('Moving card to foundation');
-                              foundation[j].add(tableau[i].removeLast());
-                              foundation[j].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[j];
-
-                              if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
-                                tableau[i].last.isFaceUp = true;
-                                //HACK Remove last card and recreate it with isFaceUp set to true. Seems like not managing state properly.
-                                PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
-                                newLast.currentPile = tableau[i].last.currentPile;
-                                newLast.cardOnTopOfThisOne = null;
-                                tableau[i].removeLast();
-                                tableau[i].add(newLast);
+                          if(topCard.value == PlayingCard.values[0]) {
+                            for(int j = 0; j < foundation.length; j++) {
+                              if(foundation[j].isEmpty) {
+                                foundation[j].add(tableau[i].removeLast());
+                                foundation[j].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[j];
+                                rebuildLastTableauCardFaceUp(i);
+                                return;
                               }
-                              return;
+                            }
+                            return;
+                          }
+
+                          //Check each foundation pile to see if the top card can be moved there
+                          for(int j = 0; j < foundation.length; j++) {
+                            if(foundation[j].isNotEmpty) {
+                              if (isValidFoundationDrop(
+                                  foundation[j].last, topCard)) {
+                                // print('Moving card to foundation');
+                                foundation[j].add(tableau[i].removeLast());
+                                foundation[j].last.currentPile =
+                                PlayingCard.DRAG_SOURCE_FOUNDATIONS[j];
+
+                                if (tableau[i].isNotEmpty &&
+                                    !tableau[i].last.isFaceUp) {
+                                  rebuildLastTableauCardFaceUp(i);
+                                }
+                                return;
+                              }
+                            }
+                          }
+
+                          //Check each tableau pile to see if the top card can be moved there
+                          for(int j = 0; j < tableau.length; j++) {
+                            if(j != i) {
+                              if(isValidTableauDrop(tableau[j].isNotEmpty ? tableau[j].last : null, topCard)) {
+                                // print('Moving card to tableau');
+                                if(tableau[j].isNotEmpty) {
+                                  tableau[j].last.cardOnTopOfThisOne = topCard;
+                                }
+                                tableau[j].add(tableau[i].removeLast());
+                                tableau[j].last.currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[j];
+
+                                if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
+                                  rebuildLastTableauCardFaceUp(i);
+                                }
+                                return;
+                              }
                             }
                           }
                         });
@@ -497,7 +535,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void removeCardFromDragSource(PlayingCard card) {
-    print('removeCardFromDragSource(${card.currentPile})');
+    // print('removeCardFromDragSource(${card.currentPile})');
 
     setState(() {
       // if(PlayingCard.dragSource == PlayingCard.DRAG_SOURCE_WASTE) {
@@ -512,16 +550,24 @@ class _GameScreenState extends State<GameScreen> {
           tableau[i].removeLast();
 
           if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
-            tableau[i].last.isFaceUp = true;
-            //HACK Remove last card and recreate it with isFaceUp set to true. Seems like not managing state properly.
-            PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
-            newLast.currentPile = tableau[i].last.currentPile;
-            tableau[i].removeLast();
-            tableau[i].add(newLast);
+            rebuildLastTableauCardFaceUp(i);
           }
         }
       }
     });
+  }
+
+  void rebuildLastTableauCardFaceUp(int i) {
+    if(tableau[i].isEmpty) {
+      return;
+    }
+    tableau[i].last.cardOnTopOfThisOne = null;
+    //HACK Remove last card and recreate it with isFaceUp set to true. Seems like not managing state properly.
+    PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
+    newLast.currentPile = tableau[i].last.currentPile;
+    newLast.isFaceUp = true;
+    tableau[i].removeLast();
+    tableau[i].add(newLast);
   }
 
   void addCardFromDragSource(PlayingCard card, List<PlayingCard> target, int newPile) {
@@ -554,13 +600,7 @@ class _GameScreenState extends State<GameScreen> {
           }
 
           if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
-            tableau[i].last.isFaceUp = true;
-            //HACK Remove last card and recreate it with isFaceUp set to true. Seems like not managing state properly.
-            PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
-            // print('Setting newLast card to ${newLast.toStr()}');
-            newLast.currentPile = tableau[i].last.currentPile;
-            tableau[i].removeLast();
-            tableau[i].add(newLast);
+            rebuildLastTableauCardFaceUp(i);
           }
         }
       }
@@ -639,6 +679,15 @@ class _GameScreenState extends State<GameScreen> {
     foundation.clear();
     tableau.clear();
 
+    setUpGame();
+
+    setState(() {});
+
+    final num_games_played = prefs.getInt('num_games_played') ?? 0;
+    await prefs.setInt('num_games_played', num_games_played + 1);
+  }
+
+  void setUpGame() {
     for (int j = 0; j < 7; j++) {
       tableau.add([]);
     }
@@ -656,14 +705,7 @@ class _GameScreenState extends State<GameScreen> {
 
     for(int i = 0; i < 4; i++) {
       foundation.add([]);
-      foundation[i].add(PlayingCard('', PlayingCard.suits[i], true, key: UniqueKey()/*Key(PlayingCard.suits[i])*/));
-      foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
     }
-
-    setState(() {});
-
-    final num_games_played = prefs.getInt('num_games_played') ?? 0;
-    await prefs.setInt('num_games_played', num_games_played + 1);
   }
 
   void checkForWin() {
@@ -705,18 +747,27 @@ class _GameScreenState extends State<GameScreen> {
       }
 
       //Check each foundation pile to see if the top card can be moved there
-      for(int i = 0; i < 4; i++) {
-        if(isValidFoundationDrop(foundation[i].last, waste.last)) {
+      for(int i = 0; i < foundation.length; i++) {
+        if (foundation[i].isEmpty) {
+          if (waste.last.value == PlayingCard.values[0]) {
+            foundation[i].add(waste.removeLast());
+            foundation[i].last.currentPile =
+            PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
+            return;
+          }
+        }
+        else if (isValidFoundationDrop(foundation[i].last, waste.last)) {
           // print('Moving card to foundation');
           foundation[i].last.cardOnTopOfThisOne = waste.last;
           foundation[i].add(waste.removeLast());
-          foundation[i].last.currentPile = PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
+          foundation[i].last.currentPile =
+          PlayingCard.DRAG_SOURCE_FOUNDATIONS[i];
           return;
         }
       }
 
       //Check each tableau pile to see if the top card can be moved there
-      for(int i = 0; i < 7; i++) {
+      for(int i = 0; i < tableau.length; i++) {
         if(isValidTableauDrop(tableau[i].isNotEmpty ? tableau[i].last : null, waste.last)) {
           // print('Moving card to tableau');
           if(tableau[i].isNotEmpty) {
