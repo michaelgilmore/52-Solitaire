@@ -449,7 +449,7 @@ class _GameScreenState extends State<GameScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     //Loop through all cards in all tableau piles and print their card on top
-                    for(int i = 0; i < 7; i++) {
+                    for(int i = 0; i < tableau.length; i++) {
                       if(tableau[i].isNotEmpty) {
                         //Loop through all cards in this tableau pile and print its card on top
                         for(int j = 0; j < tableau[i].length; j++) {
@@ -543,7 +543,7 @@ class _GameScreenState extends State<GameScreen> {
         // print('Removing ${waste.last.toString()} from waste');
         waste.removeLast();
       }
-      for(int i = 0; i < 7; i++) {
+      for(int i = 0; i < tableau.length; i++) {
         // if(PlayingCard.dragSource == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
           // print('Removing ${tableau[i].last.toStr()} from tableau $i');
@@ -579,7 +579,7 @@ class _GameScreenState extends State<GameScreen> {
         target.add(waste.removeLast());
         target.last.currentPile = newPile;
       }
-      for(int i = 0; i < 7; i++) {
+      for(int i = 0; i < tableau.length; i++) {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
           // print('Transferring card from tableau ${i+1} to $newPile');
 
@@ -604,7 +604,7 @@ class _GameScreenState extends State<GameScreen> {
           }
         }
       }
-      for(int i = 0; i < 4; i++) {
+      for(int i = 0; i < foundation.length; i++) {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_FOUNDATIONS[i]) {
           // print('Transferring card from foundation ${i+1} to $newPile');
           target.add(foundation[i].removeLast());
@@ -693,8 +693,8 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     //Deal cards to tableau
-    for(int i = 0; i <= 6; i++) {
-      for (int j = i; j < 7; j++) {
+    for(int i = 0; i <= (tableau.length-1); i++) {
+      for (int j = i; j < tableau.length; j++) {
         stock[0].currentPile = PlayingCard.DRAG_SOURCE_TABLEAUS[j];
         stock[0].cardOnTopOfThisOne = null;
         stock[0].isFaceUp = j == i;
@@ -713,7 +713,7 @@ class _GameScreenState extends State<GameScreen> {
       if(stock.isEmpty) {
         //If all cards in all piles of tableau are face up, set you have won
         bool allFaceUp = true;
-        for(int i = 0; i < 7; i++) {
+        for(int i = 0; i < tableau.length; i++) {
           if(tableau[i].isNotEmpty) {
             for(PlayingCard card in tableau[i]) {
               if(!card.isFaceUp) {
