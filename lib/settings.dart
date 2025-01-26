@@ -1,8 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:gsolitaire/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings extends StatefulWidget {
+
+  static String COLOR_AREA_APP_BACKGROUND = 'App Background';
+  static String COLOR_AREA_APP_FOREGROUND = 'App Foreground';
+  static String COLOR_AREA_APP_BAR = 'App Bar';
+  static String COLOR_AREA_BOTTOM_NAV = 'Bottom Nav';
+  static String COLOR_AREA_CARD_BACK = 'Card Back';
+  static String COLOR_AREA_CARD_FRONT = 'Card Front';
+
+  static ValueNotifier<Map<String, Color>> colorMapNotifier = ValueNotifier({
+    COLOR_AREA_APP_BACKGROUND: Colors.white10,
+    COLOR_AREA_APP_FOREGROUND: Colors.white,
+    COLOR_AREA_APP_BAR: Colors.white12,
+    COLOR_AREA_BOTTOM_NAV: Colors.white12,
+    COLOR_AREA_CARD_BACK: Colors.black12,
+    COLOR_AREA_CARD_FRONT: Colors.white38,
+  });
+
+  // static Map<String, Color> colorMap = {
+  //   COLOR_AREA_APP_BACKGROUND: Colors.blue,
+  //   COLOR_AREA_APP_BAR: Colors.blue,
+  //   COLOR_AREA_BOTTOM_NAV: Colors.blue,
+  //   COLOR_AREA_CARD_BACK: Colors.blue,
+  //   COLOR_AREA_CARD_FRONT: Colors.white,
+  // };
+
   const Settings({super.key});
 
   @override
@@ -12,6 +38,7 @@ class Settings extends StatefulWidget {
 class _SettingsState extends State<Settings> {
 
   late final futurePrefs;
+  String? selectedAreaForSettingColor;
 
   @override
   initState() {
@@ -23,15 +50,22 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_BAR],
         title: const Text('Settings'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text('52!Solitaire version: ${GSolitaireApp.APP_VERSION}',
-                style: TextStyle(fontSize: 24)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/images/52!-logo.png', width: 50, height: 50),
+                const SizedBox(width: 8),
+                const Text('Solitaire version: ${GSolitaireApp.APP_VERSION}',
+                    style: TextStyle(fontSize: 24)),
+              ],
+            ),
             const SizedBox(height: 20),
             FutureBuilder(
               future: futurePrefs,
@@ -68,7 +102,98 @@ class _SettingsState extends State<Settings> {
             setState(() {});
           },
           child: const Text('Reset Counts')
-        )
+        ),
+
+        const SizedBox(height: 10),
+        const Divider(),
+        const SizedBox(height: 10),
+
+        //Add color chooser button for background
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const SizedBox(
+                            width: 180,
+                            child: Text('Choose a background color')
+                        ),
+                        //Add an X button for closing this popup
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    ),
+                    content: StatefulBuilder(
+                      builder: (BuildContext context, void Function(void Function()) setState) {
+                        return SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Text('Area:'),
+                                  const SizedBox(width: 12),
+                                  DropdownButton<String>(
+                                    value: selectedAreaForSettingColor,
+                                    hint: const Text('[Select]'),
+                                    items: Settings.colorMapNotifier.value.keys
+                                        .map((e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e),
+                                    )).toList(),
+                                    onChanged: (selection) {
+                                      setState(() {
+                                        selectedAreaForSettingColor = selection;
+                                      });
+                                    }
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Visibility(
+                                visible: selectedAreaForSettingColor != null,
+                                child: ColorPicker(
+                                  pickerColor: selectedAreaForSettingColor == null ? Colors.white
+                                      : (Settings.colorMapNotifier.value[selectedAreaForSettingColor] ?? Colors.white),
+                                  onColorChanged: (color) {
+                                    if(selectedAreaForSettingColor == null) {
+                                      return;
+                                    }
+                                    setState(() {
+                                      // Settings.colorMap[selectedAreaForSettingColor!] = color;
+                                      Settings.colorMapNotifier.value[selectedAreaForSettingColor!] = color;
+                                    });
+                                    Settings.colorMapNotifier.notifyListeners();
+                                  },
+                                  pickerAreaHeightPercent: 0.8,
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('OK')
+                              )
+                            ],
+                          )
+                        );
+                      },
+                    ),
+                  );
+                },
+              );
+            });
+          },
+          child: const Text('Choose Background Color'),
+        ),
       ],
     );
   }

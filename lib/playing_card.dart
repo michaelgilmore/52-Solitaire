@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gsolitaire/settings.dart';
 
 class PlayingCard extends StatefulWidget {
 
@@ -73,15 +74,22 @@ class _PlayingCardState extends State<PlayingCard> {
   Color textColor = Colors.white;
   final Color cardBorderColor = Colors.grey[500]!;
 
+  Color cardBackColor = Colors.blue;
+  Color cardFrontColor = Colors.white;
+
   @override
   void initState() {
     super.initState();
+
+    cardBackColor = Settings.colorMapNotifier.value[Settings.COLOR_AREA_CARD_BACK] ?? Colors.blue;
+    cardFrontColor = Settings.colorMapNotifier.value[Settings.COLOR_AREA_CARD_FRONT] ?? Colors.white;
+
   }
 
   @override
   Widget build(BuildContext context) {
     // print('PlayingCard build(${widget.toStr()}) - currentPile: ${widget.currentPile}, isFaceUp: ${widget.isFaceUp}');
-    cardColor = widget.isFaceUp ? Colors.white : Colors.blue;
+    cardColor = widget.isFaceUp ? cardFrontColor : cardBackColor;
     textColor = widget.isFaceUp ? widget.suitColor : cardColor;
 
     return Draggable(

@@ -12,3 +12,12 @@ functionality that I may want to implement in other projects.
 4. Scan the QR code on the computer screen.
 NOTE: This may not work if you have updates to install in Android Studio.
 
+
+## Release Notes
+
+# v1.4 1/26/2025
+- Added 52! logo image
+- Added color chooser
+
+
+

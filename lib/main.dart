@@ -8,18 +8,19 @@ void main() {
 class GSolitaireApp extends StatelessWidget {
   const GSolitaireApp({super.key});
 
-  static const APP_VERSION = '1.3';
+  // ignore: constant_identifier_names
+  static const APP_VERSION = '1.4';
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'GSolitaire',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        // colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const GameScreen(title: '52! Solitaire'), //8*10^67
+      home: const GameScreen(), //8*10^67
     );
   }
 }
