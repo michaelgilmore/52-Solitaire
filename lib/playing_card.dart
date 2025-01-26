@@ -38,7 +38,7 @@ class PlayingCard extends StatefulWidget {
   final Color suitColor;
   bool isFaceUp = false;
   int _currentPile = PlayingCard.DRAG_SOURCE_STOCK;
-  int get currentPile => _currentPile;
+  int get currentPile => _currentPile;//1-based
   set currentPile(int newPile) {
     // print('setting ${toStr()} currentPile to $newPile, was $_currentPile');
     _currentPile = newPile;

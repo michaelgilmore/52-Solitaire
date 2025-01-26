@@ -18,6 +18,7 @@ NOTE: This may not work if you have updates to install in Android Studio.
 # v1.4 1/26/2025
 - Added 52! logo image
 - Added color chooser
+- Fixed drag to foundation issue where it was staying connected to the tableau it was dragged from.
 
 
 

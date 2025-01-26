@@ -21,14 +21,6 @@ class Settings extends StatefulWidget {
     COLOR_AREA_CARD_FRONT: Colors.white38,
   });
 
-  // static Map<String, Color> colorMap = {
-  //   COLOR_AREA_APP_BACKGROUND: Colors.blue,
-  //   COLOR_AREA_APP_BAR: Colors.blue,
-  //   COLOR_AREA_BOTTOM_NAV: Colors.blue,
-  //   COLOR_AREA_CARD_BACK: Colors.blue,
-  //   COLOR_AREA_CARD_FRONT: Colors.white,
-  // };
-
   const Settings({super.key});
 
   @override
@@ -51,8 +43,9 @@ class _SettingsState extends State<Settings> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_BAR],
-        title: const Text('Settings'),
+        title: Text('Settings', style: TextStyle(color: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND])),
       ),
+      backgroundColor: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_BACKGROUND],
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -62,8 +55,8 @@ class _SettingsState extends State<Settings> {
               children: [
                 Image.asset('assets/images/52!-logo.png', width: 50, height: 50),
                 const SizedBox(width: 8),
-                const Text('Solitaire version: ${GSolitaireApp.APP_VERSION}',
-                    style: TextStyle(fontSize: 24)),
+                Text('Solitaire version: ${GSolitaireApp.APP_VERSION}',
+                    style: TextStyle(fontSize: 24, color: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND])),
               ],
             ),
             const SizedBox(height: 20),
@@ -78,9 +71,10 @@ class _SettingsState extends State<Settings> {
               },
             ),
             const SizedBox(height: 20),
-            const Text('Current screen dimensions'),
-            Text('${MediaQuery.of(context).size.width.toStringAsFixed(0)} x ${MediaQuery.of(context).size.height.toStringAsFixed(0)}'),
-
+            Text('Current screen dimensions', style: TextStyle(color: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND])),
+            Text('${MediaQuery.of(context).size.width.toStringAsFixed(0)} x ${MediaQuery.of(context).size.height.toStringAsFixed(0)}',
+              style: TextStyle(color: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND])
+            ),
           ],
         ),
       ),
@@ -92,9 +86,9 @@ class _SettingsState extends State<Settings> {
     return Column(
       children: [
         Text('Games Played: ${prefs.getInt('num_games_played') ?? 0}',
-            style: const TextStyle(fontSize: 20)),
+            style: TextStyle(fontSize: 20, color: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND])),
         Text('Games Won: ${prefs.getInt('num_games_won') ?? 0}',
-            style: const TextStyle(fontSize: 20)),
+            style: TextStyle(fontSize: 20, color: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND])),
         ElevatedButton(
           onPressed: () {
             prefs.setInt('num_games_played', 0);
