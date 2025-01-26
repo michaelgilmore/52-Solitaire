@@ -17,8 +17,8 @@ class Settings extends StatefulWidget {
     COLOR_AREA_APP_FOREGROUND: Colors.white,
     COLOR_AREA_APP_BAR: Colors.white12,
     COLOR_AREA_BOTTOM_NAV: Colors.white12,
-    COLOR_AREA_CARD_BACK: Colors.black12,
-    COLOR_AREA_CARD_FRONT: Colors.white38,
+    COLOR_AREA_CARD_BACK: Colors.grey[600]!,
+    COLOR_AREA_CARD_FRONT: Colors.grey[350]!,
   });
 
   const Settings({super.key});

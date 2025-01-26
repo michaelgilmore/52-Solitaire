@@ -42,7 +42,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Color appBarBackgroundColor = Colors.indigoAccent;
   Color appForegroundColor = Colors.white;
-  Color? appBackgroundColor = Colors.grey[600];
+  Color appBackgroundColor = Colors.grey[600]!;
   Color bottomNavBackgroundColor = Colors.indigoAccent;
 
   @override
@@ -303,48 +303,41 @@ class _GameScreenState extends State<GameScreen> {
                           DragTarget(
                             onAcceptWithDetails: (DragTargetDetails data) {
                               PlayingCard droppedCard = data.data;
-                              print('onAcceptWithDetails ${droppedCard.toStr()}');
+                              // print('onAcceptWithDetails ${droppedCard.toStr()}');
 
                               if(foundation[j].isEmpty) {
                                 if(droppedCard.value == PlayingCard.values[0]/*Ace*/) {
-                                  print('Will accept foundation drop');
-                                  print('Accepting foundation drop');
-
                                   int i = droppedCard.currentPile - 1;
-
                                   moveFromTableauToFoundation(i, j);
                                 }
                               }
                               if (foundation[j].isNotEmpty) {
                                 if (isValidFoundationDrop(
                                     foundation[j].last, droppedCard)) {
-                                  print('Accepting foundation drop');
-
                                   int i = droppedCard.currentPile - 1;
-
                                   moveFromTableauToFoundation(i, j);
                                 }
                               }
                             },
                             onWillAcceptWithDetails: (DragTargetDetails data) {
                               PlayingCard droppedCard = data.data;
-                              print('onWillAcceptWithDetails ${droppedCard.toStr()}');
+                              // print('onWillAcceptWithDetails ${droppedCard.toStr()}');
 
                               if(foundation[j].isEmpty) {
                                 if(droppedCard.value == PlayingCard.values[0]/*Ace*/) {
-                                  print('Will accept foundation drop');
+                                  // print('Will accept foundation drop');
                                   return true;
                                 }
                               }
                               if (foundation[j].isNotEmpty) {
                                 if (isValidFoundationDrop(
                                     foundation[j].last, droppedCard)) {
-                                  print('Will accept foundation drop');
+                                  // print('Will accept foundation drop');
                                   return true;
                                 }
                               }
 
-                              print('Rejecting drop');
+                              // print('Rejecting drop');
                               return false;
                             },
                             builder: (context, candidateData, rejectedData) =>
@@ -438,20 +431,26 @@ class _GameScreenState extends State<GameScreen> {
                             },
                             child: DragTarget(
                               onAcceptWithDetails: (DragTargetDetails data) {
+                                // print('Dragging to tableau');
+
                                 PlayingCard droppedCard = data.data;
 
                                 if (isValidTableauDrop(tableau[i].isNotEmpty
                                     ? tableau[i].last
                                     : null, droppedCard)) {
-                                  // print('Accepting tableau drop ${droppedCard.toStr()}');
+                                  // print('Valid tableau drop ${droppedCard.toStr()}');
 
                                   if (tableau[i].isNotEmpty) {
                                     // print('Setting cardOnTopOfThisOne for ${tableau[i].last.toStr()} to ${droppedCard.toStr()}');
                                     tableau[i].last.cardOnTopOfThisOne =
                                         droppedCard;
                                   }
+
                                   addCardFromDragSource(droppedCard, tableau[i],
                                       PlayingCard.DRAG_SOURCE_TABLEAUS[i]);
+                                }
+                                else {
+                                  // print('Not a valid tableau drop');
                                 }
                               },
                               onWillAcceptWithDetails: (
@@ -579,6 +578,11 @@ class _GameScreenState extends State<GameScreen> {
   bool isValidTableauDrop(PlayingCard? bottomCard, PlayingCard droppedCard) {
     // print('isValidTableauDrop()');
 
+    if(!droppedCard.isFaceUp) {
+      print('Cannot drop a card that is face down');
+      return false;
+    }
+
     if(bottomCard == null) {
       // print('bottomCard is null, dropping ${droppedCard.value}');
       return droppedCard.value == 'K';
@@ -596,15 +600,21 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   bool isValidFoundationDrop(PlayingCard bottomCard, PlayingCard droppedCard) {
-    print('isValidFoundationDrop ${droppedCard.value} ${droppedCard.suit}(${droppedCard.currentPile}) -> ${bottomCard.value} ${bottomCard.suit}(${bottomCard.currentPile})');
+    // print('isValidFoundationDrop ${droppedCard.value} ${droppedCard.suit}(${droppedCard.currentPile}) -> ${bottomCard.value} ${bottomCard.suit}(${bottomCard.currentPile})');
 
     if(droppedCard.cardOnTopOfThisOne != null) {
-      print('Can''t drop card with other cards on top of it');
+      print('Cannot drop card with other cards on top of it. '
+          '${droppedCard.toStr()} has '
+          '${droppedCard.cardOnTopOfThisOne?.toStr()} on it.');
+      return false;
+    }
+    if(!droppedCard.isFaceUp) {
+      print('Cannot drop a card that is face down');
       return false;
     }
 
     bool retVal = (bottomCard.suit == droppedCard.suit) && isOneAbove(bottomCard, droppedCard);
-    print(retVal);
+    // print(retVal);
     return retVal;
   }
 
@@ -640,50 +650,55 @@ class _GameScreenState extends State<GameScreen> {
     PlayingCard newLast = PlayingCard(tableau[i].last.value, tableau[i].last.suit, true, key: UniqueKey());
     newLast.currentPile = tableau[i].last.currentPile;
     newLast.isFaceUp = true;
+    newLast.cardOnTopOfThisOne = null;
     tableau[i].removeLast();
     tableau[i].add(newLast);
   }
 
-  void addCardFromDragSource(PlayingCard card, List<PlayingCard> target, int newPile) {
+  void addCardFromDragSource(PlayingCard card, List<PlayingCard> targetPile, int newPileNumber) {
     // print('addCardFromDragSource(${card.currentPile})');
 
     setState(() {
       if(card.currentPile == PlayingCard.DRAG_SOURCE_WASTE) {
         // print('Transferring card from waste');
-        target.add(waste.removeLast());
-        target.last.currentPile = newPile;
+        targetPile.add(waste.removeLast());
+        targetPile.last.currentPile = newPileNumber;
       }
       for(int i = 0; i < tableau.length; i++) {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_TABLEAUS[i]) {
-          // print('Transferring card from tableau ${i+1} to $newPile');
+          // print('Transferring card from tableau ${i+1} to $newPileNumber');
 
           // if(newPile > 0 && tableau[newPile - 1].isNotEmpty) {
           //   tableau[newPile - 1].last.cardOnTopOfThisOne = card;
           // }
 
           tableau[i].remove(card);
-          target.add(card);
-          target.last.currentPile = newPile;
+          targetPile.add(card);
+          targetPile.last.currentPile = newPileNumber;
 
           if(card.cardOnTopOfThisOne != null) {
             // print('Adding card on top of this one ${card.cardOnTopOfThisOne!.toStr()}');
-            addCardFromDragSource(card.cardOnTopOfThisOne!, target, newPile);
+            addCardFromDragSource(card.cardOnTopOfThisOne!, targetPile, newPileNumber);
           }
           else {
             // print('No card on top of ${card.toStr()}');
           }
 
-          if(tableau[i].isNotEmpty && !tableau[i].last.isFaceUp) {
-            rebuildLastTableauCardFaceUp(i);
+          if(tableau[i].isNotEmpty) {
+            if(!tableau[i].last.isFaceUp) {
+              rebuildLastTableauCardFaceUp(i);
+            }
+
+            tableau[i].last.cardOnTopOfThisOne = null;
           }
         }
       }
       for(int i = 0; i < foundation.length; i++) {
         if(card.currentPile == PlayingCard.DRAG_SOURCE_FOUNDATIONS[i]) {
           // print('Transferring card from foundation ${i+1} to $newPile');
-          target.add(foundation[i].removeLast());
+          targetPile.add(foundation[i].removeLast());
         }
-        target.last.currentPile = newPile;
+        targetPile.last.currentPile = newPileNumber;
       }
     });
   }
@@ -697,7 +712,6 @@ class _GameScreenState extends State<GameScreen> {
     if(returnValue) {
       int numGamesWon = prefs.getInt('num_games_won') ?? 0;
       prefs.setInt('num_games_won', numGamesWon + 1);
-      setState(() {});
       youWillWin = false;
     }
     return returnValue;

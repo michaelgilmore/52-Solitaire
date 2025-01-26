@@ -74,22 +74,12 @@ class _PlayingCardState extends State<PlayingCard> {
   Color textColor = Colors.white;
   final Color cardBorderColor = Colors.grey[500]!;
 
-  Color cardBackColor = Colors.blue;
-  Color cardFrontColor = Colors.white;
-
-  @override
-  void initState() {
-    super.initState();
-
-    cardBackColor = Settings.colorMapNotifier.value[Settings.COLOR_AREA_CARD_BACK] ?? Colors.blue;
-    cardFrontColor = Settings.colorMapNotifier.value[Settings.COLOR_AREA_CARD_FRONT] ?? Colors.white;
-
-  }
-
   @override
   Widget build(BuildContext context) {
     // print('PlayingCard build(${widget.toStr()}) - currentPile: ${widget.currentPile}, isFaceUp: ${widget.isFaceUp}');
-    cardColor = widget.isFaceUp ? cardFrontColor : cardBackColor;
+    cardColor = widget.isFaceUp
+        ? Settings.colorMapNotifier.value[Settings.COLOR_AREA_CARD_FRONT]!
+        : Settings.colorMapNotifier.value[Settings.COLOR_AREA_CARD_BACK]!;
     textColor = widget.isFaceUp ? widget.suitColor : cardColor;
 
     return Draggable(
