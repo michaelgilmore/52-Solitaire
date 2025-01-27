@@ -9,7 +9,7 @@ class GSolitaireApp extends StatelessWidget {
   const GSolitaireApp({super.key});
 
   // ignore: constant_identifier_names
-  static const APP_VERSION = '1.4.1';
+  static const APP_VERSION = '1.5';
 
   @override
   Widget build(BuildContext context) {

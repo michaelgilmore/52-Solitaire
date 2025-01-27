@@ -43,7 +43,8 @@ class _SettingsState extends State<Settings> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_BAR],
-        title: Text('Settings', style: TextStyle(color: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND])),
+        foregroundColor: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND],
+        title: const Text('Settings'),
       ),
       backgroundColor: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_BACKGROUND],
       body: Center(
