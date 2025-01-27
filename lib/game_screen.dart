@@ -290,7 +290,10 @@ class _GameScreenState extends State<GameScreen> {
 
                             //Waste
                             GestureDetector(
-                                onDoubleTap: () {
+                                // onDoubleTap: () {
+                                //   useCard();
+                                // },
+                                onTap: () {
                                   useCard();
                                 },
                                 child: Column(
