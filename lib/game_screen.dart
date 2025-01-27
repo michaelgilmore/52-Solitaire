@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gsolitaire/playing_card.dart';
+import 'package:gsolitaire/quote.dart';
 import 'package:gsolitaire/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -44,6 +47,8 @@ class _GameScreenState extends State<GameScreen> {
   Color appForegroundColor = Colors.white;
   Color appBackgroundColor = Colors.grey[600]!;
   Color bottomNavBackgroundColor = Colors.indigoAccent;
+
+  late Quote quote;
 
   @override
   void initState() {
@@ -247,285 +252,292 @@ class _GameScreenState extends State<GameScreen> {
               padding: EdgeInsets.all(surroundingPadding),
               child: SingleChildScrollView(
                 child: Column(
-                  mainAxisSize: MainAxisSize.max,
                   children: [
-                    Visibility(
-                      visible: wonGame(),
-                      child: Text('YOU WIN!',
-                          style: TextStyle(color: appForegroundColor, fontSize: 50)),
-                    ),
-
-                    //Stock, Waste, Foundation
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    Column(
+                      mainAxisSize: MainAxisSize.max,
                       children: [
-                        //Stock
-                        GestureDetector(
-                            onTap: () => flipNextStockCard(),
-                            child: Column(
-                                children: [
-                                  stock.isNotEmpty ? stock[0] : Container(
-                                    height: cardHeight,
-                                    width: cardWidth,
-                                    //Add dashed gray border around stock pile
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.grey,
-                                          style: BorderStyle.solid,
-                                          width: 1),
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                  ),
-                                  Text(stock.length.toString(),
-                                      style: pileCountTextStyle),
-                                ]
-                            )
+                        Visibility(
+                          visible: wonGame(),
+                          child: Text('YOU WIN!',
+                              style: TextStyle(color: appForegroundColor, fontSize: 50)),
                         ),
 
-                        //Waste
-                        GestureDetector(
-                            onDoubleTap: () {
-                              useCard();
-                            },
-                            child: Column(
-                                children: [
-                                  waste.isNotEmpty ? waste.last : SizedBox(
-                                      height: cardHeight, width: cardWidth),
-                                  Text(waste.length.toString(),
-                                      style: pileCountTextStyle),
-                                ]
-                            )
-                        ),
-
-                        SizedBox(width: spaceBetweenWasteAndFoundation),
-
-                        //Foundation
-                        for(int j = 0; j < foundation.length; j++)
-                          DragTarget(
-                            onAcceptWithDetails: (DragTargetDetails data) {
-                              PlayingCard droppedCard = data.data;
-                              // print('onAcceptWithDetails ${droppedCard.toStr()}');
-
-                              if(foundation[j].isEmpty) {
-                                if(droppedCard.value == PlayingCard.values[0]/*Ace*/) {
-                                  int i = droppedCard.currentPile - 1;
-                                  moveFromTableauToFoundation(i, j);
-                                }
-                              }
-                              if (foundation[j].isNotEmpty) {
-                                if (isValidFoundationDrop(
-                                    foundation[j].last, droppedCard)) {
-                                  int i = droppedCard.currentPile - 1;
-                                  moveFromTableauToFoundation(i, j);
-                                }
-                              }
-                            },
-                            onWillAcceptWithDetails: (DragTargetDetails data) {
-                              PlayingCard droppedCard = data.data;
-                              // print('onWillAcceptWithDetails ${droppedCard.toStr()}');
-
-                              if(foundation[j].isEmpty) {
-                                if(droppedCard.value == PlayingCard.values[0]/*Ace*/) {
-                                  // print('Will accept foundation drop');
-                                  return true;
-                                }
-                              }
-                              if (foundation[j].isNotEmpty) {
-                                if (isValidFoundationDrop(
-                                    foundation[j].last, droppedCard)) {
-                                  // print('Will accept foundation drop');
-                                  return true;
-                                }
-                              }
-
-                              // print('Rejecting drop');
-                              return false;
-                            },
-                            builder: (context, candidateData, rejectedData) =>
-                                Column(
-                                  children: [
-                                    foundation[j].isNotEmpty ? foundation[j]
-                                        .last : Container(
-                                      height: cardHeight,
-                                      width: cardWidth,
-                                      //Add dashed gray border around foundation pile
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.grey,
-                                            style: BorderStyle.solid,
-                                            width: 1),
-                                        borderRadius: BorderRadius.circular(5),
+                        //Stock, Waste, Foundation
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            //Stock
+                            GestureDetector(
+                                onTap: () => flipNextStockCard(),
+                                child: Column(
+                                    children: [
+                                      stock.isNotEmpty ? stock[0] : Container(
+                                        height: cardHeight,
+                                        width: cardWidth,
+                                        //Add dashed gray border around stock pile
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.grey,
+                                              style: BorderStyle.solid,
+                                              width: 1),
+                                          borderRadius: BorderRadius.circular(5),
+                                        ),
                                       ),
-                                    ),
-                                    Text((foundation[j].length).toString(),
-                                        style: pileCountTextStyle),
-                                  ],
-                                ),
-                          ),
-                      ],
-                    ),
+                                      Text(stock.length.toString(),
+                                          style: pileCountTextStyle),
+                                    ]
+                                )
+                            ),
 
-                    const SizedBox(height: 50),
+                            //Waste
+                            GestureDetector(
+                                onDoubleTap: () {
+                                  useCard();
+                                },
+                                child: Column(
+                                    children: [
+                                      waste.isNotEmpty ? waste.last : SizedBox(
+                                          height: cardHeight, width: cardWidth),
+                                      Text(waste.length.toString(),
+                                          style: pileCountTextStyle),
+                                    ]
+                                )
+                            ),
 
-                    //Tableau
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        for(int i = 0; i < tableau.length; i++)
-                          GestureDetector(
-                            onDoubleTap: () {
-                              // print('Double tap on tableau $i card ${tableau[i].last.toStr()}');
+                            SizedBox(width: spaceBetweenWasteAndFoundation),
 
-                              setState(() {
-                                if (tableau[i].isEmpty) {
-                                  return;
-                                }
+                            //Foundation
+                            for(int j = 0; j < foundation.length; j++)
+                              DragTarget(
+                                onAcceptWithDetails: (DragTargetDetails data) {
+                                  PlayingCard droppedCard = data.data;
+                                  // print('onAcceptWithDetails ${droppedCard.toStr()}');
 
-                                PlayingCard topCard = tableau[i].last;
-
-                                if (topCard.value == PlayingCard.values[0]/*Ace*/) {
-                                  for (int j = 0; j < foundation.length; j++) {
-                                    if (foundation[j].isEmpty) {
-                                      // print('Moving ace from tableau $i to foundation $j');
+                                  if(foundation[j].isEmpty) {
+                                    if(droppedCard.value == PlayingCard.values[0]/*Ace*/) {
+                                      int i = droppedCard.currentPile - 1;
                                       moveFromTableauToFoundation(i, j);
-                                      return;
                                     }
                                   }
-                                  return;
-                                }
-
-                                //Check each foundation pile to see if the top card can be moved there
-                                for (int j = 0; j < foundation.length; j++) {
                                   if (foundation[j].isNotEmpty) {
                                     if (isValidFoundationDrop(
-                                        foundation[j].last, topCard)) {
-                                      // print('Moving card from tableau $i to foundation $j');
+                                        foundation[j].last, droppedCard)) {
+                                      int i = droppedCard.currentPile - 1;
                                       moveFromTableauToFoundation(i, j);
-                                      return;
                                     }
                                   }
-                                }
+                                },
+                                onWillAcceptWithDetails: (DragTargetDetails data) {
+                                  PlayingCard droppedCard = data.data;
+                                  // print('onWillAcceptWithDetails ${droppedCard.toStr()}');
 
-                                //Check each tableau pile to see if the top card can be moved there
-                                for (int j = 0; j < tableau.length; j++) {
-                                  if (j != i) {
-                                    if (isValidTableauDrop(tableau[j].isNotEmpty
-                                        ? tableau[j].last
-                                        : null, topCard)) {
-                                      // print('Moving card to tableau');
-                                      if (tableau[j].isNotEmpty) {
-                                        tableau[j].last.cardOnTopOfThisOne =
-                                            topCard;
-                                      }
-                                      tableau[j].add(tableau[i].removeLast());
-                                      tableau[j].last.currentPile =
-                                      PlayingCard.DRAG_SOURCE_TABLEAUS[j];
-
-                                      if (tableau[i].isNotEmpty &&
-                                          !tableau[i].last.isFaceUp) {
-                                        rebuildLastTableauCardFaceUp(i);
-                                      }
-                                      return;
+                                  if(foundation[j].isEmpty) {
+                                    if(droppedCard.value == PlayingCard.values[0]/*Ace*/) {
+                                      // print('Will accept foundation drop');
+                                      return true;
                                     }
                                   }
-                                }
-                              });
-                            },
-                            child: DragTarget(
-                              onAcceptWithDetails: (DragTargetDetails data) {
-                                // print('Dragging to tableau');
-
-                                PlayingCard droppedCard = data.data;
-
-                                if (isValidTableauDrop(tableau[i].isNotEmpty
-                                    ? tableau[i].last
-                                    : null, droppedCard)) {
-                                  // print('Valid tableau drop ${droppedCard.toStr()}');
-
-                                  if (tableau[i].isNotEmpty) {
-                                    // print('Setting cardOnTopOfThisOne for ${tableau[i].last.toStr()} to ${droppedCard.toStr()}');
-                                    tableau[i].last.cardOnTopOfThisOne =
-                                        droppedCard;
+                                  if (foundation[j].isNotEmpty) {
+                                    if (isValidFoundationDrop(
+                                        foundation[j].last, droppedCard)) {
+                                      // print('Will accept foundation drop');
+                                      return true;
+                                    }
                                   }
 
-                                  addCardFromDragSource(droppedCard, tableau[i],
-                                      PlayingCard.DRAG_SOURCE_TABLEAUS[i]);
-                                }
-                                else {
-                                  // print('Not a valid tableau drop');
-                                }
-                              },
-                              onWillAcceptWithDetails: (
-                                  DragTargetDetails data) {
-                                PlayingCard droppedCard = data.data;
-                                // print('onWillAcceptWithDetails ${droppedCard.toString()}');
-
-                                if (isValidTableauDrop(tableau[i].isNotEmpty
-                                    ? tableau[i].last
-                                    : null, droppedCard)) {
-                                  // print('Will accept tableau drop');
-                                  return true;
-                                }
-
-                                // print('Will not accept tableau drop');
-                                return false;
-                              },
-                              builder: (context, candidateData, rejectedData) =>
-                                  SizedBox(
-                                    width: cardWidth,
-                                    height: cardHeight * 5,
-                                    //Draw tableau cards overlapping each other
-                                    child: Stack(
+                                  // print('Rejecting drop');
+                                  return false;
+                                },
+                                builder: (context, candidateData, rejectedData) =>
+                                    Column(
                                       children: [
-                                        for(int j = 0; j <
-                                            tableau[i].length; j++)
-                                          Positioned(
-                                            left: 0,
-                                            top: j * 20.0,
-                                            child: tableau[i][j],
-                                          )
+                                        foundation[j].isNotEmpty ? foundation[j]
+                                            .last : Container(
+                                          height: cardHeight,
+                                          width: cardWidth,
+                                          //Add dashed gray border around foundation pile
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: Colors.grey,
+                                                style: BorderStyle.solid,
+                                                width: 1),
+                                            borderRadius: BorderRadius.circular(5),
+                                          ),
+                                        ),
+                                        Text((foundation[j].length).toString(),
+                                            style: pileCountTextStyle),
                                       ],
                                     ),
-                                  ),
-                            ),
-                          ),
-                      ],
-                    ),
+                              ),
+                          ],
+                        ),
 
-                    const SizedBox(height: 10),
+                        const SizedBox(height: 50),
 
-                    //Debugging: Show cards on top button
-                    if (kDebugMode)
-                      Visibility(
-                        visible: showCardOnTopButton,
-                        child: ElevatedButton(
-                            onPressed: () {
-                              //Loop through all card in the foundation piles and print their card on top
-                              for (int i = 0; i < foundation.length; i++) {
-                                if (foundation[i].isNotEmpty) {
-                                  //Loop through all cards in this foundation pile and print its card on top
-                                  for (int j = 0; j < foundation[i].length; j++) {
-                                      print('Foundation ${i + 1} card ${foundation[i][j]
-                                        .toStr()} card on top of this one is ${foundation[i][j]
-                                        .cardOnTopOfThisOne?.toStr()}');
+                        //Tableau
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            for(int i = 0; i < tableau.length; i++)
+                              GestureDetector(
+                                onDoubleTap: () {
+                                  // print('Double tap on tableau $i card ${tableau[i].last.toStr()}');
+
+                                  setState(() {
+                                    if (tableau[i].isEmpty) {
+                                      return;
                                     }
-                                }
-                              }
-                              //Loop through all cards in all tableau piles and print their card on top
-                              for (int i = 0; i < tableau.length; i++) {
-                                if (tableau[i].isNotEmpty) {
-                                  //Loop through all cards in this tableau pile and print its card on top
-                                  for (int j = 0; j < tableau[i].length; j++) {
-                                    if (kDebugMode) {
-                                      print('Tableau ${i + 1} card ${tableau[i][j]
-                                        .toStr()} card on top of this one is ${tableau[i][j]
-                                        .cardOnTopOfThisOne?.toStr()}');
+
+                                    PlayingCard topCard = tableau[i].last;
+
+                                    if (topCard.value == PlayingCard.values[0]/*Ace*/) {
+                                      for (int j = 0; j < foundation.length; j++) {
+                                        if (foundation[j].isEmpty) {
+                                          // print('Moving ace from tableau $i to foundation $j');
+                                          moveFromTableauToFoundation(i, j);
+                                          return;
+                                        }
+                                      }
+                                      return;
+                                    }
+
+                                    //Check each foundation pile to see if the top card can be moved there
+                                    for (int j = 0; j < foundation.length; j++) {
+                                      if (foundation[j].isNotEmpty) {
+                                        if (isValidFoundationDrop(
+                                            foundation[j].last, topCard)) {
+                                          // print('Moving card from tableau $i to foundation $j');
+                                          moveFromTableauToFoundation(i, j);
+                                          return;
+                                        }
+                                      }
+                                    }
+
+                                    //Check each tableau pile to see if the top card can be moved there
+                                    for (int j = 0; j < tableau.length; j++) {
+                                      if (j != i) {
+                                        if (isValidTableauDrop(tableau[j].isNotEmpty
+                                            ? tableau[j].last
+                                            : null, topCard)) {
+                                          // print('Moving card to tableau');
+                                          if (tableau[j].isNotEmpty) {
+                                            tableau[j].last.cardOnTopOfThisOne =
+                                                topCard;
+                                          }
+                                          tableau[j].add(tableau[i].removeLast());
+                                          tableau[j].last.currentPile =
+                                          PlayingCard.DRAG_SOURCE_TABLEAUS[j];
+
+                                          if (tableau[i].isNotEmpty &&
+                                              !tableau[i].last.isFaceUp) {
+                                            rebuildLastTableauCardFaceUp(i);
+                                          }
+                                          return;
+                                        }
+                                      }
+                                    }
+                                  });
+                                },
+                                child: DragTarget(
+                                  onAcceptWithDetails: (DragTargetDetails data) {
+                                    // print('Dragging to tableau');
+
+                                    PlayingCard droppedCard = data.data;
+
+                                    if (isValidTableauDrop(tableau[i].isNotEmpty
+                                        ? tableau[i].last
+                                        : null, droppedCard)) {
+                                      // print('Valid tableau drop ${droppedCard.toStr()}');
+
+                                      if (tableau[i].isNotEmpty) {
+                                        // print('Setting cardOnTopOfThisOne for ${tableau[i].last.toStr()} to ${droppedCard.toStr()}');
+                                        tableau[i].last.cardOnTopOfThisOne =
+                                            droppedCard;
+                                      }
+
+                                      addCardFromDragSource(droppedCard, tableau[i],
+                                          PlayingCard.DRAG_SOURCE_TABLEAUS[i]);
+                                    }
+                                    else {
+                                      // print('Not a valid tableau drop');
+                                    }
+                                  },
+                                  onWillAcceptWithDetails: (
+                                      DragTargetDetails data) {
+                                    PlayingCard droppedCard = data.data;
+                                    // print('onWillAcceptWithDetails ${droppedCard.toString()}');
+
+                                    if (isValidTableauDrop(tableau[i].isNotEmpty
+                                        ? tableau[i].last
+                                        : null, droppedCard)) {
+                                      // print('Will accept tableau drop');
+                                      return true;
+                                    }
+
+                                    // print('Will not accept tableau drop');
+                                    return false;
+                                  },
+                                  builder: (context, candidateData, rejectedData) =>
+                                      SizedBox(
+                                        width: cardWidth,
+                                        height: cardHeight * 5,
+                                        //Draw tableau cards overlapping each other
+                                        child: Stack(
+                                          children: [
+                                            for(int j = 0; j <
+                                                tableau[i].length; j++)
+                                              Positioned(
+                                                left: 0,
+                                                top: j * 20.0,
+                                                child: tableau[i][j],
+                                              )
+                                          ],
+                                        ),
+                                      ),
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        //Debugging: Show cards on top button
+                        if (kDebugMode)
+                          Visibility(
+                            visible: showCardOnTopButton,
+                            child: ElevatedButton(
+                                onPressed: () {
+                                  //Loop through all card in the foundation piles and print their card on top
+                                  for (int i = 0; i < foundation.length; i++) {
+                                    if (foundation[i].isNotEmpty) {
+                                      //Loop through all cards in this foundation pile and print its card on top
+                                      for (int j = 0; j < foundation[i].length; j++) {
+                                          print('Foundation ${i + 1} card ${foundation[i][j]
+                                            .toStr()} card on top of this one is ${foundation[i][j]
+                                            .cardOnTopOfThisOne?.toStr()}');
+                                        }
                                     }
                                   }
-                                }
-                              }
-                            },
-                            child: const Text('Print cards on top')
-                          ),
-                        )
+                                  //Loop through all cards in all tableau piles and print their card on top
+                                  for (int i = 0; i < tableau.length; i++) {
+                                    if (tableau[i].isNotEmpty) {
+                                      //Loop through all cards in this tableau pile and print its card on top
+                                      for (int j = 0; j < tableau[i].length; j++) {
+                                        if (kDebugMode) {
+                                          print('Tableau ${i + 1} card ${tableau[i][j]
+                                            .toStr()} card on top of this one is ${tableau[i][j]
+                                            .cardOnTopOfThisOne?.toStr()}');
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                child: const Text('Print cards on top')
+                              ),
+                            )
+                      ],
+                    ),
+                    //Quote
+                    Text(quote.quote, style: TextStyle(fontSize: 14, color: appForegroundColor)),
+                    Text('- ${quote.author}', style: TextStyle(fontSize: 8, fontStyle: FontStyle.italic, color: appForegroundColor)),
                   ],
                 ),
               ),
@@ -776,6 +788,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void setUpGame() {
+
+    quote = Quote();
+
     for (int j = 0; j < 7; j++) {
       tableau.add([]);
     }
