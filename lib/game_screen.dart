@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gsolitaire/playing_card.dart';
@@ -10,6 +8,10 @@ import 'package:weather/weather.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
+
+  static TextEditingController weatherKeyController = TextEditingController();
+  static TextEditingController latitudeController = TextEditingController();
+  static TextEditingController longitudeController = TextEditingController();
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -51,8 +53,7 @@ class _GameScreenState extends State<GameScreen> {
 
   late Quote quote;
 
-  TextEditingController weatherKeyController = TextEditingController(text: '');
-  late final WeatherFactory weatherFactory;
+  WeatherFactory? weatherFactory;
   Weather? _weather;
 
   @override
@@ -71,12 +72,24 @@ class _GameScreenState extends State<GameScreen> {
 
     pileCountTextStyle = TextStyle(color: appForegroundColor, fontSize: 10);
 
-    weatherFactory = WeatherFactory(weatherKeyController.text);
-    weatherFactory.currentWeatherByLocation(42.6, -71.4).then((w) {
-      setState(() {
-        _weather = w;
-      });
-    });
+    if(GameScreen.weatherKeyController.text.isNotEmpty
+      && GameScreen.latitudeController.text.isNotEmpty
+      && GameScreen.longitudeController.text.isNotEmpty
+    ) {
+      // print('weather api key: ${GameScreen.weatherKeyController.text}');
+      weatherFactory ??= WeatherFactory(GameScreen.weatherKeyController.text);
+      if(weatherFactory != null) {
+        double? lat = double.tryParse(GameScreen.latitudeController.text);
+        double? long = double.tryParse(GameScreen.longitudeController.text);
+        if(lat != null && long != null) {
+          weatherFactory!.currentWeatherByLocation(42.6, -71.4).then((w) {
+            setState(() {
+              _weather = w;
+            });
+          });
+        }
+      }
+    }
 
     setUpGame();
   }
@@ -209,6 +222,22 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
+    if(_weather == null && GameScreen.weatherKeyController.text.isNotEmpty) {
+      // print('weather api key: ${GameScreen.weatherKeyController.text}');
+      weatherFactory ??= WeatherFactory(GameScreen.weatherKeyController.text);
+      if(weatherFactory != null) {
+        double? lat = double.tryParse(GameScreen.latitudeController.text);
+        double? long = double.tryParse(GameScreen.longitudeController.text);
+        if (lat != null && long != null) {
+          weatherFactory?.currentWeatherByLocation(lat, long).then((w) {
+            setState(() {
+              _weather = w;
+            });
+          });
+        }
+      }
+    }
+
     double? temp = 0;
     double? lowTemp = 0;//degrees F
     double? highTemp = 0;//degrees F
@@ -263,12 +292,15 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                   Row(
                     children: [
-                      Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: NetworkImage("http://openweathermap.org/img/wn/${_weather?.weatherIcon}@2x.png"),
+                      Visibility(
+                        visible: _weather != null,
+                        child: Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: NetworkImage("http://openweathermap.org/img/wn/${_weather?.weatherIcon}@2x.png"),
+                            ),
                           ),
                         ),
                       ),

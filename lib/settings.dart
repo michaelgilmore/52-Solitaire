@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:gsolitaire/game_screen.dart';
 import 'package:gsolitaire/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -47,7 +48,7 @@ class _SettingsState extends State<Settings> {
         title: const Text('Settings'),
       ),
       backgroundColor: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_BACKGROUND],
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -76,6 +77,59 @@ class _SettingsState extends State<Settings> {
             Text('${MediaQuery.of(context).size.width.toStringAsFixed(0)} x ${MediaQuery.of(context).size.height.toStringAsFixed(0)}',
               style: TextStyle(color: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND])
             ),
+
+            //Add field for weather API key that is saved in shared preferences
+            const SizedBox(height: 20),
+            Text('Weather API Key', style: TextStyle(color: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND])),
+            SizedBox(
+                width: 250,
+                child: TextField(controller: GameScreen.weatherKeyController,
+                  decoration: const InputDecoration(
+                    hintText: 'API key',
+                    fillColor: Colors.white,
+                    filled: true,
+                  ),
+                )
+            ),
+            ElevatedButton(onPressed: () async {
+              var prefs = await SharedPreferences.getInstance();
+              prefs.setString('weatherKey', GameScreen.weatherKeyController.text);
+            }, child: const Text('Save')),
+
+            const SizedBox(height: 20),
+            Text('Location', style: TextStyle(color: Settings.colorMapNotifier.value[Settings.COLOR_AREA_APP_FOREGROUND])),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                    width: 60,
+                    child: TextField(controller: GameScreen.latitudeController,
+                      decoration: const InputDecoration(
+                        hintText: 'Latitude',
+                        fillColor: Colors.white,
+                        filled: true,
+                      ),
+                    )
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                    width: 60,
+                    child: TextField(controller: GameScreen.longitudeController,
+                      decoration: const InputDecoration(
+                        hintText: 'Longitude',
+                        fillColor: Colors.white,
+                        filled: true,
+                      ),
+                      )
+                ),
+              ],
+            ),
+            ElevatedButton(onPressed: () async {
+              var prefs = await SharedPreferences.getInstance();
+              prefs.setString('lat', GameScreen.latitudeController.text);
+              prefs.setString('long', GameScreen.longitudeController.text);
+            }, child: const Text('Save')),
+
           ],
         ),
       ),
@@ -84,6 +138,7 @@ class _SettingsState extends State<Settings> {
 
   Widget _buildSettings(BuildContext context, Object? data) {
     final prefs = data as SharedPreferences;
+
     return Column(
       children: [
         Text('Games Played: ${prefs.getInt('num_games_played') ?? 0}',
