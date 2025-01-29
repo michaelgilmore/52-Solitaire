@@ -20,6 +20,7 @@ NOTE: This may not work if you have updates to install in Android Studio.
 - Move quotes to a cloud API so they can be changed after release.
 - Pull in weather information.
 - Change doubleTap to single tap for moving from tableau.
+- Added 130 more quotes.
 
 # v1.5 1/27/2025
 - Add motivational quotes.
