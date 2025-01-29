@@ -36,7 +36,19 @@ class _SettingsState extends State<Settings> {
   @override
   initState() {
     super.initState();
-    futurePrefs = SharedPreferences.getInstance();
+    futurePrefs = SharedPreferences.getInstance().then((prefs) {
+      if (GameScreen.weatherKeyController.text.isEmpty) {
+        GameScreen.weatherKeyController.text =
+            prefs.getString('weatherKey') ?? '';
+      }
+      if (GameScreen.latitudeController.text.isEmpty) {
+        GameScreen.latitudeController.text = prefs.getString('lat') ?? '';
+      }
+      if (GameScreen.longitudeController.text.isEmpty) {
+        GameScreen.longitudeController.text = prefs.getString('long') ?? '';
+      }
+      return prefs;
+    });
   }
 
   @override
@@ -138,7 +150,6 @@ class _SettingsState extends State<Settings> {
 
   Widget _buildSettings(BuildContext context, Object? data) {
     final prefs = data as SharedPreferences;
-
     return Column(
       children: [
         Text('Games Played: ${prefs.getInt('num_games_played') ?? 0}',
