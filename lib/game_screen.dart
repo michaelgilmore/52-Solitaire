@@ -6,6 +6,7 @@ import 'package:gsolitaire/playing_card.dart';
 import 'package:gsolitaire/quote.dart';
 import 'package:gsolitaire/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:weather/weather.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -50,6 +51,10 @@ class _GameScreenState extends State<GameScreen> {
 
   late Quote quote;
 
+  TextEditingController weatherKeyController = TextEditingController(text: '28553691feac92f916f91548f64b0a12');
+  late final WeatherFactory weatherFactory;
+  Weather? _weather;
+
   @override
   void initState() {
     // print('GameScreen initState()');
@@ -65,6 +70,13 @@ class _GameScreenState extends State<GameScreen> {
     savedDeck = stock.toList();
 
     pileCountTextStyle = TextStyle(color: appForegroundColor, fontSize: 10);
+
+    weatherFactory = WeatherFactory(weatherKeyController.text);
+    weatherFactory.currentWeatherByLocation(42.6, -71.4).then((w) {
+      setState(() {
+        _weather = w;
+      });
+    });
 
     setUpGame();
   }
@@ -197,6 +209,36 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
+    double? lowTemp = 0;//degrees F
+    double? highTemp = 0;//degrees F
+    double? maxWind = 0;//mph
+    String? windDirection = '';
+    double? totalPrecip = 0;//inches
+    String? area = '';
+
+    if(_weather != null) {
+      if(_weather!.tempMin != null) {
+        lowTemp = _weather!.tempMin?.fahrenheit;
+      }
+      if(_weather!.tempMax != null) {
+        highTemp = _weather!.tempMax?.fahrenheit;
+      }
+      maxWind = _weather!.windGust;
+      if(_weather!.windDegree != null) {
+        if(_weather!.windDegree! > 337) windDirection = 'N';
+        else if(_weather!.windDegree! > 292) windDirection = 'NW';
+        else if(_weather!.windDegree! > 247) windDirection = 'W';
+        else if(_weather!.windDegree! > 202) windDirection = 'SW';
+        else if(_weather!.windDegree! > 157) windDirection = 'S';
+        else if(_weather!.windDegree! > 112) windDirection = 'SE';
+        else if(_weather!.windDegree! > 67) windDirection = 'E';
+        else if(_weather!.windDegree! > 22) windDirection = 'NE';
+        else windDirection = 'N';
+      }
+      // totalPrecip = (_weather!.rainLast3Hours ?? 0) + (_weather!.snowLast3Hours ?? 0);
+      area = _weather!.areaName ?? '';
+    }
+
     return ValueListenableBuilder(
         valueListenable: Settings.colorMapNotifier,
         builder: (context, colorMap, child) {
@@ -204,12 +246,33 @@ class _GameScreenState extends State<GameScreen> {
             appBar: AppBar(
               backgroundColor: appBarBackgroundColor,
               title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  //Add logo image
-                  Image.asset(
-                      'assets/images/52!-logo.png', width: 40, height: 40),
-                  const SizedBox(width: 6),
-                  Text('Solitaire', style: TextStyle(color: appForegroundColor)),
+                  Row(
+                    children: [
+                      //Add logo image
+                      Image.asset(
+                          'assets/images/52!-logo.png', width: 40, height: 40),
+                      const SizedBox(width: 6),
+                      Text('Solitaire', style: TextStyle(color: appForegroundColor)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage("http://openweathermap.org/img/wn/${_weather?.weatherIcon}@2x.png"),
+                          ),
+                        ),
+                      ),
+                      Text('$area\n${lowTemp?.toStringAsFixed(0)}-${highTemp?.toStringAsFixed(0)}-${maxWind?.toStringAsFixed(0)}$windDirection',
+                          textAlign: TextAlign.right,
+                          style: TextStyle(fontSize: 10, color: appForegroundColor)),
+                    ],
+                  ),
                 ],
               ),
             ),
