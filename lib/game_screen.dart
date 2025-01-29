@@ -82,7 +82,7 @@ class _GameScreenState extends State<GameScreen> {
         double? lat = double.tryParse(GameScreen.latitudeController.text);
         double? long = double.tryParse(GameScreen.longitudeController.text);
         if(lat != null && long != null) {
-          weatherFactory!.currentWeatherByLocation(42.6, -71.4).then((w) {
+          weatherFactory!.currentWeatherByLocation(lat, long).then((w) {
             setState(() {
               _weather = w;
             });
@@ -222,7 +222,11 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
-    if(_weather == null && GameScreen.weatherKeyController.text.isNotEmpty) {
+    if(_weather == null
+        && GameScreen.weatherKeyController.text.isNotEmpty
+        && GameScreen.latitudeController.text.isNotEmpty
+        && GameScreen.longitudeController.text.isNotEmpty
+    ) {
       // print('weather api key: ${GameScreen.weatherKeyController.text}');
       weatherFactory ??= WeatherFactory(GameScreen.weatherKeyController.text);
       if(weatherFactory != null) {
