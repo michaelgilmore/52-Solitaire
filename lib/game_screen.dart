@@ -51,7 +51,7 @@ class _GameScreenState extends State<GameScreen> {
 
   late Quote quote;
 
-  TextEditingController weatherKeyController = TextEditingController(text: '28553691feac92f916f91548f64b0a12');
+  TextEditingController weatherKeyController = TextEditingController(text: '');
   late final WeatherFactory weatherFactory;
   Weather? _weather;
 
@@ -209,6 +209,7 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
+    double? temp = 0;
     double? lowTemp = 0;//degrees F
     double? highTemp = 0;//degrees F
     double? maxWind = 0;//mph
@@ -217,6 +218,9 @@ class _GameScreenState extends State<GameScreen> {
     String? area = '';
 
     if(_weather != null) {
+      if(_weather!.temperature != null) {
+        temp = _weather!.temperature?.fahrenheit;
+      }
       if(_weather!.tempMin != null) {
         lowTemp = _weather!.tempMin?.fahrenheit;
       }
@@ -268,7 +272,7 @@ class _GameScreenState extends State<GameScreen> {
                           ),
                         ),
                       ),
-                      Text('$area\n${lowTemp?.toStringAsFixed(0)}-${highTemp?.toStringAsFixed(0)}-${maxWind?.toStringAsFixed(0)}$windDirection',
+                      Text('$area\n${temp?.toStringAsFixed(0)}-${maxWind?.toStringAsFixed(0)}$windDirection',
                           textAlign: TextAlign.right,
                           style: TextStyle(fontSize: 10, color: appForegroundColor)),
                     ],
