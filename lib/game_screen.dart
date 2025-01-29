@@ -256,11 +256,6 @@ class _GameScreenState extends State<GameScreen> {
                     Column(
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        Visibility(
-                          visible: wonGame(),
-                          child: Text('YOU WIN!',
-                              style: TextStyle(color: appForegroundColor, fontSize: 50)),
-                        ),
 
                         //Stock, Waste, Foundation
                         Row(
@@ -295,6 +290,9 @@ class _GameScreenState extends State<GameScreen> {
                                 // },
                                 onTap: () {
                                   useCard();
+                                  if(checkForWin()) {
+                                    showYouWinDialog(context);
+                                  }
                                 },
                                 child: Column(
                                     children: [
@@ -327,6 +325,10 @@ class _GameScreenState extends State<GameScreen> {
                                       int i = droppedCard.currentPile - 1;
                                       moveFromTableauToFoundation(i, j);
                                     }
+                                  }
+
+                                  if(checkForWin()) {
+                                    showYouWinDialog(context);
                                   }
                                 },
                                 onWillAcceptWithDetails: (DragTargetDetails data) {
@@ -381,7 +383,7 @@ class _GameScreenState extends State<GameScreen> {
                           children: [
                             for(int i = 0; i < tableau.length; i++)
                               GestureDetector(
-                                onDoubleTap: () {
+                                onTap: () {
                                   // print('Double tap on tableau $i card ${tableau[i].last.toStr()}');
 
                                   setState(() {
@@ -438,6 +440,10 @@ class _GameScreenState extends State<GameScreen> {
                                       }
                                     }
                                   });
+
+                                  if(checkForWin()) {
+                                    showYouWinDialog(context);
+                                  }
                                 },
                                 child: DragTarget(
                                   onAcceptWithDetails: (DragTargetDetails data) {
@@ -461,6 +467,10 @@ class _GameScreenState extends State<GameScreen> {
                                     }
                                     else {
                                       // print('Not a valid tableau drop');
+                                    }
+
+                                    if(checkForWin()) {
+                                      showYouWinDialog(context);
                                     }
                                   },
                                   onWillAcceptWithDetails: (
@@ -814,33 +824,21 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  void checkForWin() {
-    if(waste.isEmpty) {
-      if(stock.isEmpty) {
-        //If all cards in all piles of tableau are face up, set you have won
-        bool allFaceUp = true;
-        for(int i = 0; i < tableau.length; i++) {
-          if(tableau[i].isNotEmpty) {
-            for(PlayingCard card in tableau[i]) {
-              if(!card.isFaceUp) {
-                // print('Not all cards are face up, tableau $i card ${card.toStr()}');
-                allFaceUp = false;
-                break;
-              }
-            }
-            if(allFaceUp == false) {
-              break;
-            }
-          }
-        }
-        if(allFaceUp) {
-          setState(() {
-            youWillWin = true;
-          });
-        }
-      }
-      return;
+  bool checkForWin() {
+    // print('checkForWin()');
+
+    if(waste.isNotEmpty) return false;
+    if(stock.isNotEmpty) return false;
+    if(tableau.any((pile) => pile.isNotEmpty && !pile.first.isFaceUp)) {
+      //loop through all tableau piles and print card with its isFaceUp value
+      // for(List<PlayingCard> eachPile in tableau) {
+        // print('${eachPile.first.toStr()} isFaceUp: ${eachPile.first.isFaceUp}');
+      // }
+
+      return false;
     }
+
+    return true;
   }
 
   void useCard() {
@@ -892,18 +890,6 @@ class _GameScreenState extends State<GameScreen> {
   void moveFromTableauToFoundation(int i, int j) {
     // print('moveFromTableauToFoundation($i, $j)');
 
-    // foundation[j].add(droppedCard);
-    // removeCardFromDragSource(droppedCard);
-    //
-    // //Clean up the new card's connections
-    // // print('Dragging to foundation $j');
-    // // print('Previous pile ${droppedCard.currentPile}');
-    // PlayingCard cardUnder = tableau[droppedCard.currentPile-1].last;
-    // // print('Card under was ${cardUnder.toStr()}');
-    // cardUnder.cardOnTopOfThisOne = null;
-    // foundation[j].last.currentPile = PlayingCard
-    //     .DRAG_SOURCE_FOUNDATIONS[j];
-
     PlayingCard droppedCard = tableau[i].last;
     foundation[j].add(droppedCard);
     removeCardFromDragSource(droppedCard);
@@ -918,15 +904,35 @@ class _GameScreenState extends State<GameScreen> {
       foundation[j].last.currentPile = PlayingCard
           .DRAG_SOURCE_FOUNDATIONS[j];
     }
+  }
 
-    // foundation[j].add(
-    //     tableau[i].removeLast());
-    // foundation[j].last.currentPile =
-    // PlayingCard.DRAG_SOURCE_FOUNDATIONS[j];
-    //
-    // if (tableau[i].isNotEmpty &&
-    //     !tableau[i].last.isFaceUp) {
-    //   rebuildLastTableauCardFaceUp(i);
-    // }
+  void showYouWinDialog(BuildContext context) {
+    //Show dialog with message "You Win!"
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Win'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+            content: const SizedBox(
+              height: 150,
+              width: 100,
+              child: Center(
+                child: Text('You Win!',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 32,
+                      color: Colors.green
+                    )
+                )
+              )
+            ),
+          );
+        });
   }
 }

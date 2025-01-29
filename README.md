@@ -15,6 +15,12 @@ NOTE: This may not work if you have updates to install in Android Studio.
 
 ## Release Notes
 
+# v1.6 1/29/2025
+- Move You Win message to a popup so it doesn't push the quote off the screen.
+- Move quotes to a cloud API so they can be changed after release.
+- Pull in weather information.
+- Change doubleTap to single tap for moving from tableau.
+
 # v1.5 1/27/2025
 - Add motivational quotes.
 - Set back arrow on Settings page to use foreground color.
