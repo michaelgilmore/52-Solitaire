@@ -63,6 +63,27 @@ class _GameScreenState extends State<GameScreen> {
 
     SharedPreferences.getInstance().then((value) {
        prefs = value;
+
+       if (GameScreen.weatherKeyController.text.isEmpty) {
+         GameScreen.weatherKeyController.text =
+             prefs.getString('weatherKey') ?? '';
+         // print('weatherKey: ${GameScreen.weatherKeyController.text}');
+       }
+       if (GameScreen.latitudeController.text.isEmpty) {
+         GameScreen.latitudeController.text = prefs.getString('lat') ?? '';
+         // print('lat: ${GameScreen.latitudeController.text}');
+       }
+       if (GameScreen.longitudeController.text.isEmpty) {
+         GameScreen.longitudeController.text = prefs.getString('long') ?? '';
+         // print('long: ${GameScreen.longitudeController.text}');
+       }
+
+       if(GameScreen.weatherKeyController.text.isNotEmpty
+           && GameScreen.latitudeController.text.isNotEmpty
+           && GameScreen.longitudeController.text.isNotEmpty
+       ) {
+         initializeWeather();
+       }
     });
 
     _currentBottomNavIndex = BOTTOM_NAV_INDEX_HOME;
@@ -71,25 +92,6 @@ class _GameScreenState extends State<GameScreen> {
     savedDeck = stock.toList();
 
     pileCountTextStyle = TextStyle(color: appForegroundColor, fontSize: 10);
-
-    if(GameScreen.weatherKeyController.text.isNotEmpty
-      && GameScreen.latitudeController.text.isNotEmpty
-      && GameScreen.longitudeController.text.isNotEmpty
-    ) {
-      // print('weather api key: ${GameScreen.weatherKeyController.text}');
-      weatherFactory ??= WeatherFactory(GameScreen.weatherKeyController.text);
-      if(weatherFactory != null) {
-        double? lat = double.tryParse(GameScreen.latitudeController.text);
-        double? long = double.tryParse(GameScreen.longitudeController.text);
-        if(lat != null && long != null) {
-          weatherFactory!.currentWeatherByLocation(lat, long).then((w) {
-            setState(() {
-              _weather = w;
-            });
-          });
-        }
-      }
-    }
 
     setUpGame();
   }
@@ -227,19 +229,7 @@ class _GameScreenState extends State<GameScreen> {
         && GameScreen.latitudeController.text.isNotEmpty
         && GameScreen.longitudeController.text.isNotEmpty
     ) {
-      // print('weather api key: ${GameScreen.weatherKeyController.text}');
-      weatherFactory ??= WeatherFactory(GameScreen.weatherKeyController.text);
-      if(weatherFactory != null) {
-        double? lat = double.tryParse(GameScreen.latitudeController.text);
-        double? long = double.tryParse(GameScreen.longitudeController.text);
-        if (lat != null && long != null) {
-          weatherFactory?.currentWeatherByLocation(lat, long).then((w) {
-            setState(() {
-              _weather = w;
-            });
-          });
-        }
-      }
+      initializeWeather();
     }
 
     double? temp = 0;
@@ -1037,5 +1027,22 @@ class _GameScreenState extends State<GameScreen> {
             ),
           );
         });
+  }
+
+  void initializeWeather() {
+    // print('weather api key: (${GameScreen.weatherKeyController.text.trim()})');
+
+    weatherFactory ??= WeatherFactory(GameScreen.weatherKeyController.text.trim());
+    if(weatherFactory != null) {
+      double? lat = double.tryParse(GameScreen.latitudeController.text.trim());
+      double? long = double.tryParse(GameScreen.longitudeController.text.trim());
+      if (lat != null && long != null) {
+        weatherFactory?.currentWeatherByLocation(lat, long).then((w) {
+          setState(() {
+            _weather = w;
+          });
+        });
+      }
+    }
   }
 }
