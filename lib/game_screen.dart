@@ -821,20 +821,6 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  bool wonGame() {
-    // print('wonGame()');
-
-    //Determine if you just won
-    bool youJustWon = stock.isEmpty && waste.isEmpty && foundation[0].length == 14 && foundation[1].length == 14 && foundation[2].length == 14 && foundation[3].length == 14;
-    bool returnValue = youWillWin || youJustWon;
-    if(returnValue) {
-      int numGamesWon = prefs.getInt('num_games_won') ?? 0;
-      prefs.setInt('num_games_won', numGamesWon + 1);
-      youWillWin = false;
-    }
-    return returnValue;
-  }
-
   void setReplayLastGame(bool replayGame) {
     replayLastGame = replayGame;
   }
@@ -939,7 +925,9 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {
       if(waste.isEmpty) {
-        checkForWin();
+        if(checkForWin()) {
+          showYouWinDialog(context);
+        }
         return;
       }
 
@@ -976,7 +964,9 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
 
-      checkForWin();
+      if(checkForWin()) {
+        showYouWinDialog(context);
+      }
     });
   }
 
@@ -1000,7 +990,10 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void showYouWinDialog(BuildContext context) {
-    //Show dialog with message "You Win!"
+
+    int numGamesWon = prefs.getInt('num_games_won') ?? 0;
+    prefs.setInt('num_games_won', numGamesWon + 1);
+
     showDialog(
         context: context,
         builder: (context) {
