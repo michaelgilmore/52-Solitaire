@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:gsolitaire/game_screen.dart';
 import 'package:gsolitaire/main.dart';
+import 'package:gsolitaire/playing_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings extends StatefulWidget {
@@ -55,6 +56,7 @@ class _SettingsState extends State<Settings> {
 
   @override
   Widget build(BuildContext context) {
+    TextEditingController tmpController = TextEditingController();
     return Scaffold(
       appBar: AppBar(
         backgroundColor:
@@ -69,18 +71,21 @@ class _SettingsState extends State<Settings> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/images/52!-logo.png',
-                    width: 50, height: 50),
-                const SizedBox(width: 8),
-                Text('Solitaire version: ${GSolitaireApp.APP_VERSION}',
-                    style: TextStyle(
-                        fontSize: 24,
-                        color: Settings.colorMapNotifier
-                            .value[Settings.COLOR_AREA_APP_FOREGROUND])),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('assets/images/52!-logo.png',
+                      width: 50, height: 50),
+                  const SizedBox(width: 8),
+                  Text('Solitaire version: ${GSolitaireApp.APP_VERSION}',
+                      style: TextStyle(
+                          fontSize: 24,
+                          color: Settings.colorMapNotifier
+                              .value[Settings.COLOR_AREA_APP_FOREGROUND])),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
             FutureBuilder(
@@ -110,6 +115,8 @@ class _SettingsState extends State<Settings> {
                 style: TextStyle(
                     color: Settings.colorMapNotifier
                         .value[Settings.COLOR_AREA_APP_FOREGROUND])),
+
+            //Weather key
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -151,11 +158,12 @@ class _SettingsState extends State<Settings> {
               ],
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             Text('Location',
                 style: TextStyle(
                     color: Settings.colorMapNotifier
                         .value[Settings.COLOR_AREA_APP_FOREGROUND])),
+            //Location text boxes
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -207,6 +215,31 @@ class _SettingsState extends State<Settings> {
                           });
                     },
                     child: const Text('Save')),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SelectableText(GameScreen.savedDeck.map((card) => '${card.value}${card.suit}').join(',')),
+            //Add a textfield and a button. When the button is pressed take the textfield contents and write to savedGame and then call replay game using savedGame.
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 150,
+                  child: TextField(controller: tmpController)
+                ),
+                ElevatedButton(onPressed: () {
+                  //Parse string of values and suits into savedGame list
+                  List<String> cardStrings = tmpController.text.split(',');
+                  GameScreen.savedDeck.clear();
+                  for(String cardString in cardStrings) {
+                    //Split cardString in value and suit
+                    String value = cardString.substring(0, cardString.length - 1);
+                    String suit = cardString.substring(cardString.length - 1);
+                    GameScreen.savedDeck.add(PlayingCard(value, suit, false));
+                  }
+
+                }, child: const Text('Save this game'))
               ],
             ),
           ],

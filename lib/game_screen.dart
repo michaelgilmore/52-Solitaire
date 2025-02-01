@@ -13,6 +13,8 @@ class GameScreen extends StatefulWidget {
   static TextEditingController latitudeController = TextEditingController();
   static TextEditingController longitudeController = TextEditingController();
 
+  static late List<PlayingCard> savedDeck;
+
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
@@ -29,7 +31,6 @@ class _GameScreenState extends State<GameScreen> {
   final int BOTTOM_NAV_INDEX_NEXT_CARD = 4;
 
   late List<PlayingCard> stock;
-  late List<PlayingCard> savedDeck;
   List<PlayingCard> waste = [];
   List<List<PlayingCard>> foundation = [];
   List<List<PlayingCard>> tableau = [];
@@ -88,8 +89,8 @@ class _GameScreenState extends State<GameScreen> {
 
     _currentBottomNavIndex = BOTTOM_NAV_INDEX_HOME;
 
-    stock = replayLastGame ? savedDeck.toList() : shuffledDeck();
-    savedDeck = stock.toList();
+    stock = replayLastGame ? GameScreen.savedDeck.toList() : shuffledDeck();
+    GameScreen.savedDeck = stock.toList();
 
     pileCountTextStyle = TextStyle(color: appForegroundColor, fontSize: 10);
 
@@ -857,8 +858,8 @@ class _GameScreenState extends State<GameScreen> {
       },
     );
 
-    stock = replayLastGame ? savedDeck.toList() : shuffledDeck();
-    savedDeck = stock.toList();
+    stock = replayLastGame ? GameScreen.savedDeck.toList() : shuffledDeck();
+    GameScreen.savedDeck = stock.toList();
 
     //loop through all stock cards and set isFaceUp to false
     for(int i = 0; i < stock.length; i++) {

@@ -15,6 +15,10 @@ NOTE: This may not work if you have updates to install in Android Studio.
 
 ## Release Notes
 
+# v1.7 2/1/2025
+- Add ability to save game and replay it later.
+- Fixed won count bug.
+
 # v1.6 1/29/2025
 - Move You Win message to a popup so it doesn't push the quote off the screen.
 - Move quotes to a cloud API so they can be changed after release.
